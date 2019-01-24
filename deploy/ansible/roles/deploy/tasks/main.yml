@@ -1,0 +1,9 @@
+---
+
+# aws
+- include: init_db.yml
+- include: s3.yml
+
+# k8s
+- include: pvc.yml
+- include: helm.yml

@@ -1,0 +1,14 @@
+---
+- name: Download Kops binaries
+  get_url:
+    url: "{{ kops_download_path }}"
+    dest: /usr/local/bin/kops
+    owner: root
+    group: root
+    mode: 0755
+    force: yes
+    sha256sum: "{{ kops_sha256sum }}"
+  become: true
+
+- name: Export kubernetes cluster config using kops
+  shell: "kops export kubecfg --name {{ cluster_name }} --state {{ state_store }}"

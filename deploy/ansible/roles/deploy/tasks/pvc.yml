@@ -1,0 +1,15 @@
+---
+
+# Create NFS storage for Airflow
+- name: Create PVC configuration
+  template:
+    src: airflow-pvc.yaml.j2
+    dest: "{{ tmp_dir }}/airflow-pvc.{{ cluster_name }}.yaml"
+    mode: 0644
+
+- name: Remove old PVC
+  shell: 'kubectl --context {{ cluster_name }} delete --ignore-not-found=true --namespace {{ enclave }} -f {{ tmp_dir }}/airflow-pvc.{{ cluster_name }}.yaml'
+  ignore_errors: yes
+
+- name: Apply new PVC
+  shell: 'kubectl --context {{ cluster_name }} apply --namespace {{ enclave }} -f {{ tmp_dir }}/airflow-pvc.{{ cluster_name }}.yaml'

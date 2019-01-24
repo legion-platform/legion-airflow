@@ -1,0 +1,6 @@
+---
+
+- include: tools.yml
+- include: kubectl.yml
+- include: kops.yml
+- include: helm.yml

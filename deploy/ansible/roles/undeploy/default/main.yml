@@ -1,0 +1,1 @@
+iam_airflow_role: "{{ cluster_name }}-{{ enclave_name }}-airflow-role"

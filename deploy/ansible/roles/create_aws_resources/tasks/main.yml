@@ -1,0 +1,5 @@
+---
+
+- include: vpc-facts.yml
+- include: efs.yml
+- include: rds.yml

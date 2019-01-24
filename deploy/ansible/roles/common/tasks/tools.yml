@@ -1,0 +1,10 @@
+---
+
+- name: Download jq
+  get_url:
+    url: "{{ jq_download_url }}"
+    dest: "/usr/bin/jq"
+    owner: root
+    group: root
+    mode: a+rx
+  become: yes

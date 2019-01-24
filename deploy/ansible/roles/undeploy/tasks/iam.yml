@@ -1,0 +1,20 @@
+---
+
+- name: get list of attached policies for {{ iam_airflow_role }} role
+  shell: "aws --region {{ aws_region }} iam list-role-policies --role-name {{ iam_airflow_role }} | grep {{ cluster_name }} | tr -d '\"' | tr -d ' '"
+  register: role_policies
+
+- name: remove {{ iam_airflow_role }} policies
+  iam_policy:
+    iam_type: role
+    iam_name: "{{  iam_airflow_role }}"
+    policy_name: "{{ item }}"
+    state: absent
+  loop: "{{ role_policies.stdout_lines }}"
+  when: iam_airflow_role not in default_cluster_roles
+
+- name: Remove {{ iam_airflow_role }} role
+  iam_airflow_role:
+    name: "{{ iam_airflow_role }}"
+    state: absent
+  when: iam_airflow_role not in default_cluster_roles
