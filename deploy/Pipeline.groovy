@@ -63,6 +63,17 @@ def notifyBuild(String buildStatus = 'STARTED') {
 
 }
 
+def pullDockerCache(base_images=[], legion_image=null){
+    if (base_images){
+        for (image in base_images) {
+            sh "docker pull ${image} || true"
+        }
+    }
+    if (legion_image){
+        sh "docker pull ${env.param_docker_registry}/${legion_image}:${env.param_docker_cache_source} || true"
+    }
+}
+
 def uploadDockerImage(String imageName, String buildVersion) {
     if (env.param_stable_release) {
         sh """
