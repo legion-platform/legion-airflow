@@ -229,7 +229,7 @@ class K8s:
         :type namespace: str
         :return: None
         """
-        if type(replicas) != int or replicas <= 0:
+        if not isinstance(replicas, int) or replicas <= 0:
             raise ValueError('"replicas" argument should be a positive number, but got "%s"' % replicas)
         client = self.build_client()
         extension_api = kubernetes.client.ExtensionsV1beta1Api(client)
@@ -252,11 +252,11 @@ class K8s:
         :return: None
         """
         storage_name = legion.utils.model_properties_storage_name(model_id, model_version)
-        property = legion.k8s.properties.K8SConfigMapStorage(storage_name, namespace)
+        prop = legion.k8s.properties.K8SConfigMapStorage(storage_name, namespace)
 
-        property.load()
-        property[key] = value
-        property.save()
+        prop.load()
+        prop[key] = value
+        prop.save()
 
     def get_cluster_nodes(self):
         """

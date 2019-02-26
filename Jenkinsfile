@@ -153,7 +153,7 @@ pipeline {
                 script {
                     legion.pullDockerCache(['ubuntu:18.04'],'airflow-docker-agent')
                     sh """
-                    docker build ${Globals.dockerCacheArg} --cache-from=${env.param_docker_registry}/airflow-docker-agent -t airflow/airflow-docker-agent:${Globals.buildVersion} -f pipeline.Dockerfile .
+                    docker build ${Globals.dockerCacheArg} --cache-from=${env.param_docker_registry}/airflow-docker-agent -t legion/airflow-docker-agent:${Globals.buildVersion} -f pipeline.Dockerfile .
                     """
                     legion.uploadDockerImage('airflow-docker-agent', "${Globals.buildVersion}")
                 }
@@ -167,9 +167,9 @@ pipeline {
                         script{
                             docker.image("airflow/airflow-docker-agent:${Globals.buildVersion}").inside() {
                                 sh '''
-                                TERM="linux" pylint --exit-zero --output-format=parseable --reports=no legion_airflow > legion-pylint.log
-                                TERM="linux" pylint --exit-zero --output-format=parseable --reports=no tests >> legion-pylint.log
-                                # TODO: robot
+                                TERM="linux" pylint --exit-zero --output-format=parseable --reports=no legion_airflow/legion_airflow > legion-pylint.log
+                                TERM="linux" pylint --exit-zero --output-format=parseable --reports=no legion_airflow/tests >> legion-pylint.log
+                                TERM="linux" pylint --exit-zero --output-format=parseable --reports=no robot/libraries/legion_tests >> legion-pylint.log
                                 '''
 
                                 archiveArtifacts 'legion-pylint.log'
@@ -193,9 +193,9 @@ pipeline {
             stage("Build Ansible Docker image") {
                 steps {
                     script {
-                        legion.pullDockerCache(['ubuntu:18.04'], 'k8s-ansible')
+                        legion.pullDockerCache(['ubuntu:18.04'], 'k8s-airflow-ansible')
                         sh """
-                        docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-ansible -t airflow/k8s-ansible:${Globals.buildVersion} ${Globals.dockerLabels}  -f k8s/ansible/Dockerfile .
+                        docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow-ansible -t legion/k8s-airflow-ansible:${Globals.buildVersion} ${Globals.dockerLabels}  -f k8s/ansible/Dockerfile .
                         """
                     }
                 }
@@ -205,7 +205,7 @@ pipeline {
                     script {
                         legion.pullDockerCache(['ubuntu:18.04'], 'k8s-ansible')
                         sh """
-                        docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow --build-arg version="${Globals.buildVersion}" -t airflow/k8s-airflow:${Globals.buildVersion} ${Globals.dockerLabels} .
+                        docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow --build-arg version="${Globals.buildVersion}" -t legion/k8s-airflow:${Globals.buildVersion} ${Globals.dockerLabels} .
                         """
                     }
                 }
@@ -213,7 +213,7 @@ pipeline {
             stage('Package and upload helm charts'){
                 steps {
                     script {
-                        docker.image("airflow/airflow-docker-agent:${Globals.buildVersion}").inside("-v /var/run/docker.sock:/var/run/docker.sock -u root") {
+                        docker.image("airflow/airflow-docker-agent:${Globals.buildVersion}").inside("-v /var/run/docker.sock:/var/run/docker.sock") {
                             dir ("${WORKSPACE}/deploy/helms") {
                                 sh"""
                                     export HELM_HOME="\$(pwd)"
@@ -266,7 +266,7 @@ pipeline {
                 stage('Upload Ansible Docker Image') {
                     steps {
                         script {
-                            legion.uploadDockerImage('k8s-ansible', "${Globals.buildVersion}")
+                            legion.uploadDockerImage('k8s-airflow-ansible', "${Globals.buildVersion}")
                         }
                     }
                 }

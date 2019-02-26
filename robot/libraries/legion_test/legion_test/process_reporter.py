@@ -38,7 +38,8 @@ handler.setFormatter(logging.Formatter('\n%(asctime)s - %(levelname)s - %(messag
 LOGGER.addHandler(handler)
 
 
-class ExecutionTimeoutException(Exception): pass
+class ExecutionTimeoutException(Exception):
+    pass
 
 
 @contextlib.contextmanager
@@ -98,11 +99,10 @@ def kill_and_report_process(popen_object):
         LOGGER.error('Cannot kill process: {!r}'.format(kill_exception))
 
 
-def end_test(test, result):
+def end_test(result):
     """
     Listener for Robot's "end of test" event
 
-    :param test: test
     :param result: test result
     :return: None
     """

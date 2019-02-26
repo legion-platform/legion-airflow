@@ -52,15 +52,17 @@ class Flower:
         self.base_url = base_url
 
     def _get(self, path, params=None, parse_json=True, **kwargs):
-        """Sends a GET request.
-            :param path: Path within API.
-            :param params: (optional) Dictionary or bytes to be sent in the query string for the :class:`Request`.
-            :param \*\*kwargs: Optional arguments that ``request`` takes.
-            :return: json-encoded content of a response, if any.
-            :param parse_json: Indicates, if response should be parsed into Json
-            :type parse_json: bool
-            :rtype: dict or str
-            """
+        """
+        Sends a GET request
+
+        :param path: Path within API.
+        :param params: (optional) Dictionary or bytes to be sent in the query string for the :class:`Request`.
+        :param '**kwargs': Optional arguments that ''request'' takes.
+        :return: json-encoded content of a response, if any.
+        :param parse_json: Indicates, if response should be parsed into Json
+        :type parse_json: bool
+        :rtype: dict or str
+        """
         response = requests.get(self.base_url + path, params, timeout=self._TIMEOUT_SEC, cookies=get_session_cookies(),
                                 **kwargs)
         if response.status_code == 200:
