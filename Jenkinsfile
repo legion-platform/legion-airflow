@@ -82,13 +82,13 @@ pipeline {
                     /// Define build version
                     if (env.param_stable_release) {
                         if (env.param_release_version ){
-                            Globals.buildVersion = sh returnStdout: true, script: "python3.6 tools/update_version_id --build-version=${env.param_release_version} legion_airflow/version.py ${BUILD_USER}"
+                            Globals.buildVersion = sh returnStdout: true, script: "python3.6 tools/update_version_id --build-version=${env.param_release_version} legion_airflow/legion_airflow/version.py ${BUILD_USER}"
                         } else {
                             print('Error: ReleaseVersion parameter must be specified for stable release')
                             exit 1
                         }
                     } else {
-                        Globals.buildVersion = sh returnStdout: true, script: "python tools/update_version_id legion_airflow/version.py ${BUILD_USER}"
+                        Globals.buildVersion = sh returnStdout: true, script: "python tools/update_version_id legion_airflow/legion_airflow/version.py ${BUILD_USER}"
                     }
 
                     Globals.buildVersion = Globals.buildVersion.replaceAll("\n", "")
@@ -157,7 +157,7 @@ pipeline {
                 script {
                     legion.pullDockerCache(['ubuntu:18.04'],'airflow-docker-agent')
                     sh """
-                    docker build ${Globals.dockerCacheArg} --cache-from=${env.param_docker_registry}/airflow-docker-agent -t legion/airflow-docker-agent:${Globals.buildVersion} -f pipeline.Dockerfile .
+                    docker build ${Globals.dockerCacheArg} --cache-from=${env.param_docker_registry}/airflow-docker-agent -t legion/airflow-docker-agent:${Globals.buildVersion} -f  k8s/agent/Dockerfile .
                     """
                     legion.uploadDockerImage('airflow-docker-agent', "${Globals.buildVersion}")
                 }
@@ -193,71 +193,69 @@ pipeline {
             }
         }
 
-        stage("Build Docker images & helm") {
-            stage("Build Ansible Docker image") {
-                steps {
-                    script {
-                        legion.pullDockerCache(['ubuntu:18.04'], 'k8s-airflow-ansible')
-                        sh """
-                        docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow-ansible -t legion/k8s-airflow-ansible:${Globals.buildVersion} ${Globals.dockerLabels}  -f k8s/ansible/Dockerfile .
-                        """
-                    }
+        stage("Build Ansible Docker image") {
+            steps {
+                script {
+                    legion.pullDockerCache(['ubuntu:18.04'], 'k8s-airflow-ansible')
+                    sh """
+                    docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow-ansible -t legion/k8s-airflow-ansible:${Globals.buildVersion} ${Globals.dockerLabels}  -f k8s/ansible/Dockerfile .
+                    """
                 }
             }
-            stage("Build Airflow Docker image") {
-                steps {
-                    script {
-                        legion.pullDockerCache(['ubuntu:18.04'], 'k8s-ansible')
-                        sh """
-                        docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow --build-arg version="${Globals.buildVersion}" -t legion/k8s-airflow:${Globals.buildVersion} ${Globals.dockerLabels} .
-                        """
-                    }
+        }
+        stage("Build Airflow Docker image") {
+            steps {
+                script {
+                    legion.pullDockerCache(['ubuntu:18.04'], 'k8s-ansible')
+                    sh """
+                    docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow --build-arg version="${Globals.buildVersion}" -t legion/k8s-airflow:${Globals.buildVersion} ${Globals.dockerLabels} -f k8s/airflow/Dockerfile .
+                    """
                 }
             }
-            stage('Package and upload helm charts'){
-                steps {
-                    script {
-                        docker.image("airflow/airflow-docker-agent:${Globals.buildVersion}").inside("-v /var/run/docker.sock:/var/run/docker.sock") {
+        }
+        stage('Package and upload helm charts'){
+            steps {
+                script {
+                    docker.image("airflow/airflow-docker-agent:${Globals.buildVersion}").inside("-v /var/run/docker.sock:/var/run/docker.sock") {
+                        dir ("${WORKSPACE}/deploy/helms") {
+                            sh"""
+                                export HELM_HOME="\$(pwd)"
+                                helm init --client-only
+                                helm dependency update airflow
+                                helm package --version "${Globals.buildVersion}" airflow
+                        
+                            """
+                        }
+                        withCredentials([[
+                        $class: 'UsernamePasswordMultiBinding',
+                        credentialsId: 'nexus-local-repository',
+                        usernameVariable: 'USERNAME',
+                        passwordVariable: 'PASSWORD']]) {
                             dir ("${WORKSPACE}/deploy/helms") {
-                                sh"""
-                                    export HELM_HOME="\$(pwd)"
-                                    helm init --client-only
-                                    helm dependency update airflow
-                                    helm package --version "${Globals.buildVersion}" airflow
-                            
-                                """
-                            }
-                            withCredentials([[
-                            $class: 'UsernamePasswordMultiBinding',
-                            credentialsId: 'nexus-local-repository',
-                            usernameVariable: 'USERNAME',
-                            passwordVariable: 'PASSWORD']]) {
-                                dir ("${WORKSPACE}/deploy/helms") {
-                                    script {
-                                        sh"""
-                                        curl -u ${USERNAME}:${PASSWORD} ${env.param_helm_repository} \
-                                                --upload-file airflow-${Globals.buildVersion}.tgz
-                                        """
-                                    }
-                                }
-                            }
-                            dir ("${WORKSPACE}/legion-helm-charts") {
-                                if (env.param_stable_release) {
-                                    //checkout repo with existing charts  (needed for generating correct repo index file )
-                                    git branch: "${env.param_helm_repo_git_branch}", poll: false, url: "${env.param_helm_repo_git_url}"
+                                script {
                                     sh"""
-                                        mkdir -p ${WORKSPACE}/legion-helm-charts/airflow
-                                        cp ${WORKSPACE}/deploy/helms/airflow-${Globals.buildVersion}.tgz ${WORKSPACE}/legion-helm-charts/airflow/
-                                        git add airflow/airflow-${Globals.buildVersion}.tgz
-                                    """
-                                    sh """
-                                    helm repo index ./
-                                    git add index.yaml
-                                    git status
-                                    git commit -m "Release ${Globals.buildVersion}"
-                                    git push origin ${env.param_helm_repo_git_branch}
+                                    curl -u ${USERNAME}:${PASSWORD} ${env.param_helm_repository} \
+                                            --upload-file airflow-${Globals.buildVersion}.tgz
                                     """
                                 }
+                            }
+                        }
+                        dir ("${WORKSPACE}/legion-helm-charts") {
+                            if (env.param_stable_release) {
+                                //checkout repo with existing charts  (needed for generating correct repo index file )
+                                git branch: "${env.param_helm_repo_git_branch}", poll: false, url: "${env.param_helm_repo_git_url}"
+                                sh"""
+                                    mkdir -p ${WORKSPACE}/legion-helm-charts/airflow
+                                    cp ${WORKSPACE}/deploy/helms/airflow-${Globals.buildVersion}.tgz ${WORKSPACE}/legion-helm-charts/airflow/
+                                    git add airflow/airflow-${Globals.buildVersion}.tgz
+                                """
+                                sh """
+                                helm repo index ./
+                                git add index.yaml
+                                git status
+                                git commit -m "Release ${Globals.buildVersion}"
+                                git push origin ${env.param_helm_repo_git_branch}
+                                """
                             }
                         }
                     }

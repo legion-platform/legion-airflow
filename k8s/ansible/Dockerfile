@@ -2,14 +2,16 @@ FROM ubuntu:18.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+WORKDIR /opt/legion/deploy/
+
 # install system utilities
 RUN apt-get update && apt-get install -y \
     python-pip apt-transport-https bash curl tar openssh-client \
     sshpass git ca-certificates python-pip apt-utils locales && \
-    apt-get clean && apt-get autoclean
+    apt-get clean -y && apt-get autoclean -y
 
 # setup locale
-COPY default_locale /etc/default/locale
+COPY k8s/ansible/default_locale /etc/default/locale
 RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8 && \
     chmod 0755 /etc/default/locale
 
@@ -25,7 +27,7 @@ RUN apt-get install -y \
     python-yaml=3.12-1build2 python-jinja2=2.10-1 python-boto=2.44.0-1ubuntu2 python-boto3=1.4.2-1 \
     python-psycopg2=2.7.4-1 postgresql-client=10+190 python-crypto=2.6.1-8ubuntu2 \
     python-cryptography=2.1.4-1ubuntu1.2 awscli=1.14.44-1ubuntu1 && \
-    apt-get clean && apt-get autoclean
+    apt-get clean -y && apt-get autoclean -y
 
 # Configure ansible
 RUN mkdir -p /etc/ansible/ && /bin/echo -e "[local]\nlocalhost ansible_connection=local" > /etc/ansible/hosts
@@ -48,5 +50,3 @@ RUN tar xzf /tmp/helm/helm-${HELM_VERSION}-linux-amd64.tar.gz -C /tmp/helm && \
 
 # Deploy Legion
 COPY deploy/ansible /opt/legion/deploy/ansible
-
-WORKDIR /opt/legion/deploy/

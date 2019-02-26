@@ -28,7 +28,7 @@ RUN apt-get update -y && \
         /usr/share/doc \
         /usr/share/doc-base
 
-COPY default_locale /etc/default/locale
+COPY k8s/agent/default_locale /etc/default/locale
 RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8 && \
     chmod 0755 /etc/default/locale
 
@@ -47,11 +47,10 @@ WORKDIR /src/legion_airflow/
 
 RUN pip3 install --disable-pip-version-check --upgrade pip==18.1 pipenv==2018.10.13
 
-ADD Pipfile ./
+COPY legion_airflow/legion_airflow/requirements/Pipfile ./
 RUN pipenv install --system --dev --skip-lock
+# TODO add lock file
 
-ADD ../../legion_airflow /src/legion_airflow
+COPY legion_airflow/legion_airflow /src/legion_airflow
 RUN cd /src/legion_airflow \
-  && python setup.py develop \
-  && python setup.py sdist \
-  && python setup.py bdist_wheel
+  && python setup.py develop

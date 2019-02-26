@@ -20,9 +20,12 @@ ENV DEBIAN_FRONTEND="noninteractive" \
     LC_ALL="en_US.UTF-8" \
     LANG="en_US.UTF-8" \
     LANGUAGE="en_US.UTF-8"
+USER airflow
+WORKDIR ${AIRFLOW_HOME}
+ENTRYPOINT ["sh"]
+CMD ["${AIRFLOW_HOME}/init.sh"]
 
 RUN apt-get update -y && \
-    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         python3 g++ apt-utils build-essential python3-dev python3-pip python3-setuptools libpython3-dev \
         apt-transport-https file wget curl git libtiff5-dev libjpeg8-dev zlib1g-dev tcl8.6-dev tk8.6-dev python-tk \
@@ -39,7 +42,7 @@ RUN apt-get update -y && \
         /usr/share/doc \
         /usr/share/doc-base
 
-COPY default_locale /etc/default/locale
+COPY k8s/agent/default_locale /etc/default/locale
 RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8 && \
     chmod 0755 /etc/default/locale && \
     useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow
@@ -52,25 +55,13 @@ RUN cd "${AIRFLOW_HOME}" && \
     mv "${AIRFLOW_HOME}"/temp/airflow-rest-api-plugin/plugins "${AIRFLOW_HOME}"/plugins/rest_api && \
     rm -rf "${AIRFLOW_HOME}"/temp
 
-# TODO: return Pipfile.lock and remove "--skip-lock"
-COPY ../../Pipfile ./
-
 RUN pip3 install --disable-pip-version-check --upgrade pip==9.0.3 pipenv==2018.10.13 && \
     pipenv install --system --deploy --skip-lock --python python3
 
-COPY create_secrets.py init.sh "${AIRFLOW_HOME}/"
+COPY k8s/airflow/create_secrets.py init.sh "${AIRFLOW_HOME}/"
 
 RUN chown -R airflow: ${AIRFLOW_HOME} && chmod -R 775 ${AIRFLOW_HOME} && \
     chmod a+x "${AIRFLOW_HOME}"/init.sh
 
-# TODO: reduce
-COPY ./ "${AIRFLOW_HOME}/"
+COPY legion_airflow/legion_airflow/ "${AIRFLOW_HOME}/"
 RUN pip3 install -e ${AIRFLOW_HOME}
-
-USER airflow
-WORKDIR ${AIRFLOW_HOME}
-
-ENTRYPOINT ["sh"]
-CMD ["${AIRFLOW_HOME}/init.sh"]
-
-
