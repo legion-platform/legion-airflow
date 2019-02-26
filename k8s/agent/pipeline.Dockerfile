@@ -50,5 +50,8 @@ RUN pip3 install --disable-pip-version-check --upgrade pip==18.1 pipenv==2018.10
 ADD Pipfile ./
 RUN pipenv install --system --dev --skip-lock
 
-ADD ./ ./
-# RUN create robot tests
+ADD ../../legion_airflow /src/legion_airflow
+RUN cd /src/legion_airflow \
+  && python setup.py develop \
+  && python setup.py sdist \
+  && python setup.py bdist_wheel

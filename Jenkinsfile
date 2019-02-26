@@ -189,36 +189,6 @@ pipeline {
             }
         }
 
-        stage("Run Python tests") {
-            steps {
-                script {
-                    docker.image("airflow/airflow-docker-agent:${Globals.buildVersion}").inside("-v /var/run/docker.sock:/var/run/docker.sock -u root --net host") {
-                        sh """
-                        echo "skip now"
-
-                        # TODO: need to launch airflow tests
-                        # cd /src/legion
-                        # VERBOSE=true BASE_IMAGE_VERSION="${Globals.buildVersion}" nosetests --processes=10 \
-                        #                                                                     --process-timeout=600 \
-                        #                                                                     --with-coverage \
-                        #                                                                     --cover-package legion \
-                        #                                                                     --with-xunitmp \
-                        #                                                                     --cover-html \
-                        #                                                                     --logging-level DEBUG \
-                        #                                                                     -v || true
-                        # cd -
-                        # cp /src/legion/nosetests.xml legion/nosetests.xml
-                        # """
-                        // junit 'legion/nosetests.xml'
-
-                        // sh "tar -czf legion_cover_${Globals.buildVersion}.tar.gz /src/legion/cover/"
-                        // archiveArtifacts artifacts: "legion_cover_${Globals.buildVersion}.tar.gz"
-
-                    }
-                }
-            }
-        }
-
         stage("Build Docker images & helm") {
             stage("Build Ansible Docker image") {
                 steps {

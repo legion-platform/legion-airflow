@@ -53,7 +53,7 @@ RUN cd "${AIRFLOW_HOME}" && \
     rm -rf "${AIRFLOW_HOME}"/temp
 
 # TODO: return Pipfile.lock and remove "--skip-lock"
-COPY Pipfile ./
+COPY ../../Pipfile ./
 
 RUN pip3 install --disable-pip-version-check --upgrade pip==9.0.3 pipenv==2018.10.13 && \
     pipenv install --system --deploy --skip-lock --python python3

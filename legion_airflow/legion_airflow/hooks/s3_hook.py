@@ -14,15 +14,15 @@
 #    limitations under the License.
 #
 """S3 hook package."""
-import smart_open
 import json
+from urllib.parse import urlparse
+import smart_open
 import boto3
 
 from airflow.exceptions import AirflowConfigException
 
 from airflow import configuration as conf
 from legion_airflow.hooks.k8s_base_hook import K8SBaseHook
-from urllib.parse import urlparse
 
 
 class S3Hook(K8SBaseHook):
@@ -31,7 +31,7 @@ class S3Hook(K8SBaseHook):
     STOP_FILE_POSTFIX = '.STOP'
     STOP_FILE_NAME = 'STOP'
 
-    def __init__(self, conn_id: str = None, *args, **kwargs):
+    def __init__(self, *args, conn_id: str = None, **kwargs):
         """
         Initialize S3Hook.
 
@@ -259,7 +259,7 @@ class S3Hook(K8SBaseHook):
                 )
                 dist_obj.copy(source)
 
-    def load_file(self, filename, key, bucket_name=None, replace=False, encrypt=False):
+    def load_file(self, filename, key, bucket_name=None):
         """
         Load a local file to S3
 
@@ -269,21 +269,13 @@ class S3Hook(K8SBaseHook):
         :type key: str
         :param bucket_name: Name of the bucket in which to store the file
         :type bucket_name: str
-        :param replace: A flag to decide whether or not to overwrite the key
-            if it already exists. If replace is False and the key exists, an
-            error will be raised.
-        :type replace: bool
-        :param encrypt: If True, the file will be encrypted on the server-side
-            by S3 and will be stored in an encrypted form while at rest in S3.
-        :type encrypt: bool
         """
         with self.open_file(bucket_name, key, 'w') as dist:
             with open(filename, 'r') as source:
                 for line in source:
                     dist.write(line)
 
-    def load_string(self, string_data, key, bucket_name=None, replace=False,
-                    encrypt=False, encoding='utf-8'):
+    def load_string(self, string_data, key, bucket_name=None, encoding='utf-8'):
         """
         Load a string to S3
 
@@ -296,12 +288,6 @@ class S3Hook(K8SBaseHook):
         :type key: str
         :param bucket_name: Name of the bucket in which to store the file
         :type bucket_name: str
-        :param replace: A flag to decide whether or not to overwrite the key
-            if it already exists
-        :type replace: bool
-        :param encrypt: If True, the file will be encrypted on the server-side
-            by S3 and will be stored in an encrypted form while at rest in S3.
-        :type encrypt: bool
         :param encoding: String encoding
         :type encoding: str
         """
@@ -439,7 +425,7 @@ class CsvReader:
                 cells.append(cell.replace(quote + quote, quote))
                 # replaced middle double quotes with a single
                 cell = ''
-            elif c == column_splitter and len(cell) == 0:  # found empty cell
+            elif c == column_splitter and not cell:  # found empty cell
                 cells.append(cell)  # add an empty cell
                 cell = ''
             else:  # append found character to current cell buffer
@@ -451,7 +437,7 @@ class CsvReader:
         return cells
 
 
-class CsvWriter(object):
+class CsvWriter():
     """CSV file writer."""
 
     EOL = '\r\n'

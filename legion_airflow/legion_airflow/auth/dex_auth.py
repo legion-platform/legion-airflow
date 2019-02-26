@@ -20,10 +20,7 @@ from __future__ import unicode_literals
 from sys import version_info
 
 import flask_login
-from flask_login import (current_user,
-                         logout_user,
-                         login_required,
-                         login_user)
+from flask_login import (current_user)
 from flask import flash
 
 from flask import url_for, redirect
@@ -36,15 +33,15 @@ from werkzeug.wrappers import Response
 
 import jwt
 
-login_manager = flask_login.LoginManager()
-login_manager.login_view = 'airflow.login'  # Calls login() below
-login_manager.login_message = None
+LOGIN_MANAGER = flask_login.LoginManager()
+LOGIN_MANAGER.login_view = 'airflow.login'  # Calls login() below
+LOGIN_MANAGER.login_message = None
 
 LOG = LoggingMixin().log
 PY3 = version_info[0] == 3
 
 
-class DexUser(object):
+class DexUser():
     """Dex user details."""
 
     def __init__(self, username: str, email: str, is_superuser: bool = False,
@@ -93,7 +90,7 @@ class DexUser(object):
         return self._is_superuser
 
 
-@login_manager.header_loader
+@LOGIN_MANAGER.header_loader
 def load_user_from_header(auth_header):
     """Reload a user data from the header.
     :param auth_header: Authorization header
@@ -143,7 +140,7 @@ def load_user_from_header(auth_header):
     return DexUser(name, email, is_superuser, is_data_profiler)
 
 
-def login(self, request):
+def login(request):
     """Login a user. A function is executed on a new user session.
     Analyze request, parse JWT and create a new user object.
     :param self: required parameter for flask_login
