@@ -5,9 +5,10 @@ pipeline {
         //Input parameters
         param_git_branch = "${params.GitBranch}"
         param_profile = "${params.Profile}"
-        param_legion_version = "${params.LegionVersion}"
         param_legion_airflow_version = "${params.LegionAirflowVersion}"
-        param_deploy_legion = "${params.DeployLegion}"
+        param_legion_version_tag = "${params.LegionVersionTag}"
+        param_legion_repo = "${params.LegionRepo}"
+        param_deploy_airflow = "${params.DeployAirflow}"
         param_create_jenkins_tests = "${params.CreateJenkinsTests}"
         param_use_regression_tests = "${params.UseRegressionTests}"
         param_tests_tags = "${params.TestsTags}"
@@ -16,8 +17,8 @@ pipeline {
         param_helm_repo = "${params.HelmRepo}"
         param_debug_run = "${params.DebugRun}"
         //Job parameters
-        sharedLibPath = "deploy/legionPipeline.groovy"
-        commitID = null
+        sharedLibPath = "deploy/Pipeline.groovy"
+        legionSharedLibPath = "deploy/legionPipeline.groovy"
         cleanupContainerVersion = "latest"
         ansibleHome =  "/opt/legion/deploy/ansible"
         ansibleVerbose = '-v'
@@ -30,9 +31,17 @@ pipeline {
                 cleanWs()
                 checkout scm
                 script {
-                    legion = load "${env.sharedLibPath}"
+                    // Import legion-airflow components
+                    legionAirflow = load "${env.sharedLibPath}"
+                    
+                    // import Legion components
+                    dir ("${WORKSPACE}/legion") {
+                        git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
+                        legion = load "${env.legionSharedLibPath}"\
+                    }
+                    
+                    //Generate build description
                     legion.buildDescription()
-                    commitID = env.GIT_COMMIT
                 }
             }
         }
@@ -46,16 +55,14 @@ pipeline {
             }
         }
 
-
-        /// Deploy Airflow component to Legion cluster
         stage('Deploy Ariflow') {
             when {
-                expression {return param_deploy_legion == "true" }
+                expression {return param_deploy_airflow == "true" }
             }
             steps {
                 script {
                     legion.ansibleDebugRunCheck(env.param_debug_run)
-                    legion.deployLegion()
+                    legionAirflow.deployAirflow()
                 }
             }
         }
@@ -68,7 +75,7 @@ pipeline {
             steps {
                 script {
                     legion.ansibleDebugRunCheck(env.param_debug_run)
-                    legion.runRobotTests(env.param_tests_tags ?: "")
+                    legionAirflow.runRobotTests(env.param_tests_tags ?: "")
                 }
             }
         }
@@ -78,7 +85,7 @@ pipeline {
         always {
             script {
                 legion = load "${sharedLibPath}"
-                legion.cleanupClusterSg(param_legion_version ?: cleanupContainerVersion)
+                legion.cleanupClusterSg(param_legion_version_tag ?: cleanupContainerVersion)
                 legion.notifyBuild(currentBuild.currentResult)
             }
             deleteDir()

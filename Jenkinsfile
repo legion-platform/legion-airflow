@@ -24,6 +24,10 @@ pipeline {
             param_release_version = "${params.ReleaseVersion}"
             //Git Branch to build package from
             param_git_branch = "${params.GitBranch}"
+            //Legion repo url (for pipeline methods import)
+            param_legion_repo = "${params.LegionRepo}"
+            //Legion repo version tag (tag or branch name)
+            param_legion_version_tag = "${params.LegionVersionTag}"
             //Push release git tag
             param_push_git_tag = "${params.PushGitTag}"
             //Rewrite git tag i exists
@@ -51,6 +55,7 @@ pipeline {
             param_docker_hub_registry = "${params.DockerHubRegistry}"
             ///Job parameters
             sharedLibPath = "deploy/Pipeline.groovy"
+            legionSharedLibPath = "deploy/legionPipeline.groovy"
     }
 
     stages {
@@ -59,7 +64,18 @@ pipeline {
                 cleanWs()
                 checkout scm
                 script {
-                    legion = load "${env.sharedLibPath}"
+                    // Import legion-airflow components
+                    legionAirflow = load "${env.sharedLibPath}"
+
+                    // import Legion components
+                    dir ("${WORKSPACE}/legion") {
+                        git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
+                        legion = load "${env.legionSharedLibPath}"\
+                    }
+
+                    //Generate build description
+                    legion.buildDescription()
+
                     Globals.rootCommit = sh returnStdout: true, script: 'git rev-parse --short HEAD 2> /dev/null | sed  "s/\\(.*\\)/\\1/"'
                     Globals.rootCommit = Globals.rootCommit.trim()
                     println("Root commit: " + Globals.rootCommit)
@@ -161,7 +177,7 @@ pipeline {
                     sh """
                     docker build ${Globals.dockerCacheArg} --cache-from=${env.param_docker_registry}/airflow-docker-agent:${env.param_docker_cache_source} -t legion/airflow-docker-agent:${Globals.buildVersion} -f  k8s/agent/Dockerfile .
                     """
-                    legion.uploadDockerImage('airflow-docker-agent', "${Globals.buildVersion}")
+                    legion.uploadDockerImage('airflow-docker-agent')
                 }
             }
         }
@@ -268,14 +284,14 @@ pipeline {
                 stage('Upload Ansible Docker Image') {
                     steps {
                         script {
-                            legion.uploadDockerImage('k8s-airflow-ansible', "${Globals.buildVersion}")
+                            legion.uploadDockerImage('k8s-airflow-ansible')
                         }
                     }
                 }
                 stage('Upload Airflow Docker image') {
                     steps {
                         script {
-                            legion.uploadDockerImage('k8s-airflow', "${Globals.buildVersion}")
+                            legion.uploadDockerImage('k8s-airflow')
                         }
                     }
                 }
@@ -327,7 +343,10 @@ pipeline {
     post {
         always {
             script {
-                legion = load "${sharedLibPath}"
+                dir ("${WORKSPACE}/legion") {
+                        git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
+                        legion = load "${env.legionSharedLibPath}"\
+                    }
                 legion.notifyBuild(currentBuild.currentResult)
             }
             deleteDir()

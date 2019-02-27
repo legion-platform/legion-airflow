@@ -30,17 +30,17 @@ ENV KOPS_VERSION=1.10.0
 ADD https://github.com/kubernetes/kops/releases/download/${KOPS_VERSION}/kops-linux-amd64 /usr/local/bin/kops
 RUN chmod a+x /usr/local/bin/kops
 
-# Install kubectl
-ENV KUBECTL_VERSION=v1.10.6
-ADD https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl /usr/local/bin/kubectl
-RUN chmod a+x /usr/local/bin/kubectl
-
 # Install Helm
 ENV HELM_VERSION=v2.10.0
 ADD https://kubernetes-helm.storage.googleapis.com/helm-${HELM_VERSION}-linux-amd64.tar.gz /tmp/helm/
 RUN tar xzf /tmp/helm/helm-${HELM_VERSION}-linux-amd64.tar.gz -C /tmp/helm && \
     mv /tmp/helm/linux-amd64/helm /usr/local/bin/helm && rm -rf /tmp/helm
 
+# Install additional tools for build purposes
+RUN pip3 install Sphinx==1.8.0 sphinx_rtd_theme==0.4.1 sphinx-autobuild==0.7.1 \
+    recommonmark==0.4.0 ansible==2.7.2 awscli==1.16.19 yq==2.7.2
+
+# Update locale for pipenv compatibility
 ENV LC_ALL="en_US.UTF-8" \
     LANG="en_US.UTF-8" \
     LANGUAGE="en_US.UTF-8"
@@ -50,7 +50,3 @@ RUN pip3 install --disable-pip-version-check --upgrade pip==9.0.3 pipenv==2018.1
     cd /tmp/ && pipenv install --system --dev
 
 WORKDIR /tmp
-
-#COPY legion_airflow/legion_airflow /src/legion_airflow
-#RUN cd /src/legion_airflow \
-#  && python setup.py develop
