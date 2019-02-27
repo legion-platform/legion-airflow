@@ -1,13 +1,7 @@
 FROM ubuntu:18.04
 
 ENV DEBIAN_FRONTEND="noninteractive" \
-    AIRFLOW_HOME="/home/airflow" \
-    LC_ALL="en_US.UTF-8" \
-    LANG="en_US.UTF-8" \
-    LANGUAGE="en_US.UTF-8" \
-    KOPS_VERSION="1.10.0" \
-    HELM_VERSION="v2.10.0" \
-    KUBECTL_VERSION="v1.10.6"
+    AIRFLOW_HOME="/home/airflow"
 
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -32,25 +26,30 @@ COPY k8s/agent/default_locale /etc/default/locale
 RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8 && \
     chmod 0755 /etc/default/locale
 
-RUN wget -O /usr/local/bin/kops \
-            https://github.com/kubernetes/kops/releases/download/${KOPS_VERSION}/kops-linux-amd64 && \
-    chmod a+x /usr/local/bin/kops && \
-    wget -O /usr/local/bin/kubectl \
-            https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl && \
-    chmod a+x /usr/local/bin/kubectl && \
-    mkdir /tmp/helm && \
-    wget -O /tmp/helm/helm.tar.gz https://kubernetes-helm.storage.googleapis.com/helm-${HELM_VERSION}-linux-amd64.tar.gz && \
-    tar xzf /tmp/helm/helm.tar.gz -C /tmp/helm && \
+# Install Kops
+ENV KOPS_VERSION=1.10.0
+ADD https://github.com/kubernetes/kops/releases/download/${KOPS_VERSION}/kops-linux-amd64 /usr/local/bin/kops
+RUN chmod a+x /usr/local/bin/kops
+
+# Install kubectl
+ENV KUBECTL_VERSION=v1.10.6
+ADD https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl /usr/local/bin/kubectl
+RUN chmod a+x /usr/local/bin/kubectl
+
+# Install Helm
+ENV HELM_VERSION=v2.10.0
+ADD https://kubernetes-helm.storage.googleapis.com/helm-${HELM_VERSION}-linux-amd64.tar.gz /tmp/helm/
+RUN tar xzf /tmp/helm/helm-${HELM_VERSION}-linux-amd64.tar.gz -C /tmp/helm && \
     mv /tmp/helm/linux-amd64/helm /usr/local/bin/helm && rm -rf /tmp/helm
 
-WORKDIR /src/legion_airflow/
+ENV LC_ALL="en_US.UTF-8" \
+    LANG="en_US.UTF-8" \
+    LANGUAGE="en_US.UTF-8"
 
-RUN pip3 install --disable-pip-version-check --upgrade pip==18.1 pipenv==2018.10.13
+COPY legion_airflow/Pipfile legion_airflow/Pipfile.lock /tmp/
+RUN pip3 install --disable-pip-version-check --upgrade pip==9.0.3 pipenv==2018.10.13 && \
+    cd /tmp/ && pipenv install --system --dev
 
-COPY legion_airflow/legion_airflow/requirements/Pipfile ./
-RUN pipenv install --system --dev --skip-lock
-# TODO add lock file
-
-COPY legion_airflow/legion_airflow /src/legion_airflow
-RUN cd /src/legion_airflow \
-  && python setup.py develop
+#COPY legion_airflow/legion_airflow /src/legion_airflow
+#RUN cd /src/legion_airflow \
+#  && python setup.py develop

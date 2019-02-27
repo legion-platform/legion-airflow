@@ -16,14 +16,7 @@
 FROM ubuntu:18.04
 
 ENV DEBIAN_FRONTEND="noninteractive" \
-    AIRFLOW_HOME="/home/airflow" \
-    LC_ALL="en_US.UTF-8" \
-    LANG="en_US.UTF-8" \
-    LANGUAGE="en_US.UTF-8"
-USER airflow
-WORKDIR ${AIRFLOW_HOME}
-ENTRYPOINT ["sh"]
-CMD ["${AIRFLOW_HOME}/init.sh"]
+    AIRFLOW_HOME="/home/airflow"
 
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
@@ -42,26 +35,39 @@ RUN apt-get update -y && \
         /usr/share/doc \
         /usr/share/doc-base
 
+# Set locale
 COPY k8s/agent/default_locale /etc/default/locale
 RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8 && \
     chmod 0755 /etc/default/locale && \
     useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow
 
-RUN cd "${AIRFLOW_HOME}" && \
+# Install rest api plugin
+RUN cd ${AIRFLOW_HOME} && \
     mkdir temp && cd temp && \
     git clone https://github.com/teamclairvoyant/airflow-rest-api-plugin.git && \
-    mkdir -p "${AIRFLOW_HOME}"/plugins && \
-    touch "${AIRFLOW_HOME}"/plugins/__init__.py && \
-    mv "${AIRFLOW_HOME}"/temp/airflow-rest-api-plugin/plugins "${AIRFLOW_HOME}"/plugins/rest_api && \
-    rm -rf "${AIRFLOW_HOME}"/temp
+    mkdir -p ${AIRFLOW_HOME}/plugins && \
+    touch ${AIRFLOW_HOME}/plugins/__init__.py && \
+    mv ${AIRFLOW_HOME}/temp/airflow-rest-api-plugin/plugins ${AIRFLOW_HOME}/plugins/rest_api && \
+    rm -rf ${AIRFLOW_HOME}/temp
 
-RUN pip3 install --disable-pip-version-check --upgrade pip==9.0.3 pipenv==2018.10.13 && \
-    pipenv install --system --deploy --skip-lock --python python3
+ENV LC_ALL="en_US.UTF-8" \
+    LANG="en_US.UTF-8" \
+    LANGUAGE="en_US.UTF-8"
 
-COPY k8s/airflow/create_secrets.py init.sh "${AIRFLOW_HOME}/"
-
+# Copy legion-airflow soures and set permissions
+COPY legion_airflow/ ${AIRFLOW_HOME}/
+COPY k8s/airflow/create_secrets.py k8s/airflow/init.sh ${AIRFLOW_HOME}/
 RUN chown -R airflow: ${AIRFLOW_HOME} && chmod -R 775 ${AIRFLOW_HOME} && \
-    chmod a+x "${AIRFLOW_HOME}"/init.sh
+    chmod a+x ${AIRFLOW_HOME}/init.sh
 
-COPY legion_airflow/legion_airflow/ "${AIRFLOW_HOME}/"
-RUN pip3 install -e ${AIRFLOW_HOME}
+# Install legion-airflow dependencies
+RUN pip3 install --disable-pip-version-check --upgrade pip==9.0.3 pipenv==2018.10.13 && \
+    cd ${AIRFLOW_HOME} && pipenv install --system --deploy --python python3 
+
+# Install legion-airflow from sources
+RUN cd ${AIRFLOW_HOME} && python3 setup.py develop
+
+USER airflow
+WORKDIR "$AIRFLOW_HOME"
+ENTRYPOINT "sh"
+CMD "${AIRFLOW_HOME}/init.sh"

@@ -169,7 +169,7 @@ pipeline {
                 stage('Run Python code analyzers') {
                     steps {
                         script{
-                            docker.image("airflow/airflow-docker-agent:${Globals.buildVersion}").inside() {
+                            docker.image("legion/airflow-docker-agent:${Globals.buildVersion}").inside() {
                                 sh '''
                                 TERM="linux" pylint --exit-zero --output-format=parseable --reports=no legion_airflow/legion_airflow > legion-pylint.log
                                 TERM="linux" pylint --exit-zero --output-format=parseable --reports=no legion_airflow/tests >> legion-pylint.log
@@ -216,7 +216,7 @@ pipeline {
         stage('Package and upload helm charts'){
             steps {
                 script {
-                    docker.image("airflow/airflow-docker-agent:${Globals.buildVersion}").inside("-v /var/run/docker.sock:/var/run/docker.sock") {
+                    docker.image("legion/airflow-docker-agent:${Globals.buildVersion}").inside("-v /var/run/docker.sock:/var/run/docker.sock") {
                         dir ("${WORKSPACE}/deploy/helms") {
                             sh"""
                                 export HELM_HOME="\$(pwd)"
