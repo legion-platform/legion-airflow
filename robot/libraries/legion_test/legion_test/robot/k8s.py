@@ -18,11 +18,10 @@ Robot test library - kubernetes dashboard
 """
 import time
 
+import urllib3
 import kubernetes
 import kubernetes.client
 import kubernetes.config
-import kubernetes.config.config_exception
-import urllib3
 
 import legion.k8s.utils
 import legion.k8s.properties

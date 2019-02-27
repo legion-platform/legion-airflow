@@ -1,7 +1,6 @@
 FROM ubuntu:18.04
 
-ENV DEBIAN_FRONTEND="noninteractive" \
-    AIRFLOW_HOME="/home/airflow"
+ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -49,6 +48,8 @@ ENV LC_ALL="en_US.UTF-8" \
 COPY legion_airflow/Pipfile legion_airflow/Pipfile.lock /tmp/
 RUN pip3 install --disable-pip-version-check --upgrade pip==9.0.3 pipenv==2018.10.13 && \
     cd /tmp/ && pipenv install --system --dev
+
+WORKDIR /tmp
 
 #COPY legion_airflow/legion_airflow /src/legion_airflow
 #RUN cd /src/legion_airflow \

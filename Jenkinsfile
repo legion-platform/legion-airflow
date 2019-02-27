@@ -170,22 +170,24 @@ pipeline {
             steps {
                 script{
                     docker.image("legion/airflow-docker-agent:${Globals.buildVersion}").inside() {
-                        sh '''
-                        TERM="linux" pylint --exit-zero --output-format=parseable --reports=no legion_airflow/legion_airflow > legion-pylint.log
-                        TERM="linux" pylint --exit-zero --output-format=parseable --reports=no legion_airflow/tests >> legion-pylint.log
-                        TERM="linux" pylint --exit-zero --output-format=parseable --reports=no  robot/libraries/legion_test/legion_test/ >> legion-pylint.log
-                        '''
+                        withEnv(['PYLINTHOME=.']) {
+                            sh '''
+                            TERM="linux" pylint --exit-zero --output-format=parseable --reports=no legion_airflow/legion_airflow > legion-pylint.log
+                            TERM="linux" pylint --exit-zero --output-format=parseable --reports=no legion_airflow/tests >> legion-pylint.log
+                            TERM="linux" pylint --exit-zero --output-format=parseable --reports=no  robot/libraries/legion_test/legion_test/ >> legion-pylint.log
+                            '''
 
-                        archiveArtifacts 'legion-pylint.log'
-                        step([
-                            $class                     : 'WarningsPublisher',
-                            parserConfigurations       : [[
-                                                                parserName: 'PYLint',
-                                                                pattern   : 'legion-pylint.log'
-                                                        ]],
-                            unstableTotalAll           : '1',
-                            usePreviousBuildAsReference: true
-                        ])
+                            archiveArtifacts 'legion-pylint.log'
+                            step([
+                                $class                     : 'WarningsPublisher',
+                                parserConfigurations       : [[
+                                                                    parserName: 'PYLint',
+                                                                    pattern   : 'legion-pylint.log'
+                                                            ]],
+                                unstableTotalAll           : '1',
+                                usePreviousBuildAsReference: true
+                            ])
+                        }
                     }
                 }
             }
