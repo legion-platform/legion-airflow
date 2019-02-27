@@ -36,6 +36,8 @@ pipeline {
             param_next_version = "${params.NextVersion}"
             // Update version string
             param_update_version_string = "${params.UpdateVersionString}"
+            // Release version to be used as docker cache source
+            param_docker_cache_source = "${params.DockerCacheSource}"
             //Artifacts storage parameters
             param_helm_repo_git_url = "${params.HelmRepoGitUrl}"
             param_helm_repo_git_branch = "${params.HelmRepoGitBranch}"
@@ -157,7 +159,7 @@ pipeline {
                 script {
                     legion.pullDockerCache(['ubuntu:18.04'],'airflow-docker-agent')
                     sh """
-                    docker build ${Globals.dockerCacheArg} --cache-from=${env.param_docker_registry}/airflow-docker-agent -t legion/airflow-docker-agent:${Globals.buildVersion} -f  k8s/agent/Dockerfile .
+                    docker build ${Globals.dockerCacheArg} --cache-from=${env.param_docker_registry}/airflow-docker-agent:${env.param_docker_cache_source} -t legion/airflow-docker-agent:${Globals.buildVersion} -f  k8s/agent/Dockerfile .
                     """
                     legion.uploadDockerImage('airflow-docker-agent', "${Globals.buildVersion}")
                 }
@@ -194,7 +196,7 @@ pipeline {
                 script {
                     legion.pullDockerCache(['ubuntu:18.04'], 'k8s-airflow-ansible')
                     sh """
-                    docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow-ansible -t legion/k8s-airflow-ansible:${Globals.buildVersion} ${Globals.dockerLabels}  -f k8s/ansible/Dockerfile .
+                    docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow-ansible:${env.param_docker_cache_source} -t legion/k8s-airflow-ansible:${Globals.buildVersion} ${Globals.dockerLabels}  -f k8s/ansible/Dockerfile .
                     """
                 }
             }
@@ -204,7 +206,7 @@ pipeline {
                 script {
                     legion.pullDockerCache(['ubuntu:18.04'], 'k8s-ansible')
                     sh """
-                    docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow --build-arg version="${Globals.buildVersion}" -t legion/k8s-airflow:${Globals.buildVersion} ${Globals.dockerLabels} -f k8s/airflow/Dockerfile .
+                    docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow:${env.param_docker_cache_source} --build-arg version="${Globals.buildVersion}" -t legion/k8s-airflow:${Globals.buildVersion} ${Globals.dockerLabels} -f k8s/airflow/Dockerfile .
                     """
                 }
             }
