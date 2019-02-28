@@ -35,10 +35,8 @@ pipeline {
                     legionAirflow = load "${env.sharedLibPath}"
                     
                     // import Legion components
-                    dir ("${WORKSPACE}/legion") {
-                        git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
-                        legion = load "${env.legionSharedLibPath}"\
-                    }
+                    git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
+                    legion = load "${env.legionSharedLibPath}"\
                     
                     //Generate build description
                     legion.buildDescription()

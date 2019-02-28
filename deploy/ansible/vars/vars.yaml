@@ -9,6 +9,8 @@ cluster_name: "{{ profile }}"
 secrets_bucket: "legion-cluster"
 tmp_dir: /tmp
 helm_local_src: false
+enclaves:
+  - company-a
 
 # S3 storage 
 legion_data_bucket_prefix: epm-legion-data
