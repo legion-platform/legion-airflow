@@ -1,9 +1,9 @@
 def deployAirflow() {
     withCredentials([
-    file(credentialsId: "vault-${env.param_profile}", variable: 'vault')]) {
+    file(credentialsId: "vault-airflow", variable: 'vault')]) {
         withAWS(credentials: 'kops') {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
-                docker.image("${env.param_docker_repo}/k8s-airflow-ansible:${env.param_legion_version}").inside("-e HOME=/opt/legion/deploy -v ${WORKSPACE}/deploy/profiles:/opt/legion/deploy/profiles -u root") {
+                docker.image("${env.param_docker_repo}/k8s-airflow-ansible:${env.param_legion_version}").inside("-e HOME=/opt/legion/deploy -u root") {
                     stage('Deploy Legion') {
                         sh """
                         cd ${ansibleHome} && \
@@ -12,7 +12,6 @@ def deployAirflow() {
                         --vault-password-file=${vault} \
                         --extra-vars "profile=${env.param_profile} \
                         airflow_version=${env.param_airflow_version}  \
-                        pypi_repo=${env.param_pypi_repo} \
                         helm_repo=${env.param_helm_repo} \
                         docker_repo=${env.param_docker_repo} \
                         helm_local_src=${helmLocalSrc}"
@@ -26,7 +25,7 @@ def deployAirflow() {
 
 def undeployAirflow() {
     withCredentials([
-    file(credentialsId: "vault-${env.param_profile}", variable: 'vault')]) {
+    file(credentialsId: "vault-airflow", variable: 'vault')]) {
         withAWS(credentials: 'kops') {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
                 docker.image("${env.param_docker_repo}/k8s-airflow-ansible:${env.param_legion_version}").inside("-e HOME=/opt/legion/deploy -v ${WORKSPACE}/deploy/profiles:/opt/legion/deploy/profiles -u root") {
@@ -38,7 +37,6 @@ def undeployAirflow() {
                         --vault-password-file=${vault} \
                         --extra-vars "profile=${env.param_profile} \
                         airflow_version=${env.param_airflow_version}  \
-                        pypi_repo=${env.param_pypi_repo} \
                         helm_repo=${env.param_helm_repo} \
                         docker_repo=${env.param_docker_repo} \
                         helm_local_src=${helmLocalSrc}"
@@ -52,7 +50,7 @@ def undeployAirflow() {
 
 def terminateAirflow() {
     withCredentials([
-    file(credentialsId: "vault-${env.param_profile}", variable: 'vault')]) {
+    file(credentialsId: "vault-airflow", variable: 'vault')]) {
         withAWS(credentials: 'kops') {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
                 docker.image("${env.param_docker_repo}/k8s-airflow-ansible:${env.param_legion_version}").inside("-e HOME=/opt/legion/deploy -v ${WORKSPACE}/deploy/profiles:/opt/legion/deploy/profiles -u root") {
@@ -64,7 +62,6 @@ def terminateAirflow() {
                         --vault-password-file=${vault} \
                         --extra-vars "profile=${env.param_profile} \
                         airflow_version=${env.param_airflow_version}  \
-                        pypi_repo=${env.param_pypi_repo} \
                         helm_repo=${env.param_helm_repo} \
                         docker_repo=${env.param_docker_repo} \
                         helm_local_src=${helmLocalSrc}"
