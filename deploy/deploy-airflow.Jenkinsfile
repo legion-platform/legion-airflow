@@ -84,8 +84,10 @@ pipeline {
     post {
         always {
             script {
-                legion = load "${sharedLibPath}"
-                legion.cleanupClusterSg(param_legion_version_tag ?: cleanupContainerVersion)
+                dir ("${WORKSPACE}/legion") {
+                        git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
+                        legion = load "${env.legionSharedLibPath}"\
+                    }
                 legion.notifyBuild(currentBuild.currentResult)
             }
             deleteDir()

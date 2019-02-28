@@ -37,7 +37,7 @@
       when: enclave_name is defined and enclave_name | trim != ''
 
     - debug:
-        msg: Deploy airflow to {{ enclaves }} enclavesen
+        msg: Deploy airflow to {{ enclaves }} enclave
 
   post_tasks:
     - name: Delete secrets file
