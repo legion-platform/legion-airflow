@@ -36,6 +36,7 @@ pyasn1 = "==0.4.4"
 psycopg2-binary = "==2.7.6.1"
 redis = "==2.10.6"
 hiredis = "==0.2.0"
+astroid = "==2.1.0"
 
 [dev-packages]
 "unittest2" = "==1.1.0"
