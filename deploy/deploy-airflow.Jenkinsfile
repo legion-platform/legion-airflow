@@ -19,7 +19,7 @@ pipeline {
         param_debug_run = "${params.DebugRun}"
         //Job parameters
         sharedLibPath = "deploy/Pipeline.groovy"
-        legionSharedLibPath = "deploy/legionPipeline.groovy"
+        legionSharedLibPath = "legion/deploy/legionPipeline.groovy"
         cleanupContainerVersion = "latest"
         ansibleHome =  "/opt/legion/deploy/ansible"
         ansibleVerbose = '-v'
@@ -36,7 +36,11 @@ pipeline {
                     legionAirflow = load "${env.sharedLibPath}"
                     
                     // import Legion components
-                    git branch: "${env.param_legion_branch}", poll: false, url: "${env.param_legion_repo}"
+                    sh"""
+                    mkdir ~/.ssh || true
+                    ssh-keyscan github.com >> ~/.ssh/known_hosts
+                    git clone ${env.param_legion_repo} && cd legion && git checkout ${env.param_legion_branch}
+                    """
                     legion = load "${env.legionSharedLibPath}"
                     
                     //Generate build description
