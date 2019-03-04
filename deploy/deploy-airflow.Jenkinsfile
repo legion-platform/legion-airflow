@@ -6,7 +6,8 @@ pipeline {
         param_git_branch = "${params.GitBranch}"
         param_profile = "${params.Profile}"
         param_legion_airflow_version = "${params.LegionAirflowVersion}"
-        param_legion_version_tag = "${params.LegionVersionTag}"
+        param_legion_version = "${params.LegionVersion}"
+        param_legion_branch = "${params.LegionBranch}"
         //Legion eclave name where to deploy Airflow
         param_enclave_name = "${params.Enclave}"
         param_deploy_airflow = "${params.DeployAirflow}"
@@ -35,8 +36,8 @@ pipeline {
                     legionAirflow = load "${env.sharedLibPath}"
                     
                     // import Legion components
-                    git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
-                    legion = load "${env.legionSharedLibPath}"\
+                    git branch: "${env.param_legion_branch}", poll: false, url: "${env.param_legion_repo}"
+                    legion = load "${env.legionSharedLibPath}"
                     
                     //Generate build description
                     legion.buildDescription()
@@ -83,7 +84,7 @@ pipeline {
         always {
             script {
                 dir ("${WORKSPACE}/legion") {
-                        git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
+                        git branch: "${env.param_legion_branch}", poll: false, url: "${env.param_legion_repo}"
                         legion = load "${env.legionSharedLibPath}"\
                     }
                 legion.notifyBuild(currentBuild.currentResult)
