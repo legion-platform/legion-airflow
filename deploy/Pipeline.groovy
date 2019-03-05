@@ -11,7 +11,7 @@ def deployAirflow() {
                         ${ansibleVerbose} \
                         --vault-password-file=${vault} \
                         --extra-vars "profile=${env.param_profile} \
-                        airflow_version=${env.param_legion_airflow_version} \
+                        legion_airflow_version=${env.param_legion_airflow_version} \
                         state_store=${env.param_legion_state_store} \
                         helm_repo=${env.param_helm_repo} \
                         docker_repo=${env.param_docker_repo} \
@@ -38,7 +38,7 @@ def undeployAirflow() {
                         ${ansibleVerbose} \
                         --vault-password-file=${vault} \
                         --extra-vars "profile=${env.param_profile} \
-                        airflow_version=${env.param_airflow_version}  \
+                        legion_airflow_version=${env.param_airflow_version}  \
                         helm_repo=${env.param_helm_repo} \
                         docker_repo=${env.param_docker_repo} \
                         helm_local_src=${helmLocalSrc}"
