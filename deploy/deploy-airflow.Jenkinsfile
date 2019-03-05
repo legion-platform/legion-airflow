@@ -38,17 +38,11 @@ pipeline {
                     // Import legion-airflow components
                     legionAirflow = load "${env.sharedLibPath}"
                     
+                    // import Legion components
                     dir("${WORKSPACE}/legion") {
-                        // import Legion components
+                        
                         git branch: "${env.param_legion_branch}", poll: false, url: "${env.param_legion_repo}"
                     }
-
-//                    sh"""
-//                    env
-//                    mkdir ~/.ssh || true
-//                    ssh-keyscan github.com >> ~/.ssh/known_hosts
-//                    git clone ${env.param_legion_repo} && cd legion && git checkout ${env.param_legion_branch}
-//                    """
                     legion = load "${env.legionSharedLibPath}"
                     
                     //Generate build description
@@ -107,13 +101,6 @@ pipeline {
     post {
         always {
             script {
-                // import Legion components
-//                sh"""
-//                env
-//                mkdir ~/.ssh || true
-//                ssh-keyscan github.com >> ~/.ssh/known_hosts
-//                git clone ${env.param_legion_repo} && cd legion && git checkout ${env.param_legion_branch}
-//                """
                 dir("${WORKSPACE}/legion") {
                     // import Legion components
                     git branch: "${env.param_legion_branch}", poll: false, url: "${env.param_legion_repo}"
