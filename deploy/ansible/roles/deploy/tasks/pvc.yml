@@ -1,6 +1,15 @@
 ---
-
 # Create NFS storage for Airflow
+
+- name: Create EFS provisioner
+  template:
+    src: provisioner.yaml.j2
+    dest: "{{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
+    mode: 0644
+
+- name: Create NFS persistance provisioner
+  command: "kubectl --context {{ cluster_name }} apply -f {{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
+
 - name: Create PVC configuration
   template:
     src: airflow-pvc.yaml.j2
