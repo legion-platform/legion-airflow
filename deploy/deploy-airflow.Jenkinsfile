@@ -24,6 +24,8 @@ pipeline {
         ansibleHome =  "/opt/legion/deploy/ansible"
         ansibleVerbose = '-v'
         helmLocalSrc = 'false'
+        //Alternative profiles path to be used in ansible
+        PROFILES_PATH = "legion/deploy/profiles"
     }
 
     stages {
@@ -37,6 +39,7 @@ pipeline {
                     
                     // import Legion components
                     sh"""
+                    env
                     mkdir ~/.ssh || true
                     ssh-keyscan github.com >> ~/.ssh/known_hosts
                     git clone ${env.param_legion_repo} && cd legion && git checkout ${env.param_legion_branch}
@@ -49,39 +52,51 @@ pipeline {
             }
         }
 
-        /// Whitelist Jenkins Agent IP on cluster
-        stage('Authorize Jenkins Agent') {
+        stage('test env vars') {
             steps {
                 script {
-                    legion.authorizeJenkinsAgent()
+                    docker.image("${env.param_docker_repo}/k8s-airflow-ansible:${env.param_legion_airflow_version}").inside("-e HOME=/opt/legion/deploy -u root") {
+                        sh """
+                        env
+                        """
+                    }
                 }
             }
         }
 
-        stage('Deploy Ariflow') {
-            when {
-                expression {return param_deploy_airflow == "true" }
-            }
-            steps {
-                script {
-                    legion.ansibleDebugRunCheck(env.param_debug_run)
-                    legionAirflow.deployAirflow()
-                }
-            }
-        }
-        
-        /// Run Robot tests
-        stage('Run regression tests'){
-            when {
-                expression { return param_use_regression_tests == "true" }
-            }
-            steps {
-                script {
-                    legion.ansibleDebugRunCheck(env.param_debug_run)
-                    legionAirflow.runRobotTests(env.param_tests_tags ?: "")
-                }
-            }
-        }
+        /// Whitelist Jenkins Agent IP on cluster
+//        stage('Authorize Jenkins Agent') {
+//            steps {
+//                script {
+//                    legion.authorizeJenkinsAgent()
+//                }
+//            }
+//        }
+//
+//        stage('Deploy Ariflow') {
+//            when {
+//                expression {return param_deploy_airflow == "true" }
+//            }
+//            steps {
+//                script {
+//                    legion.ansibleDebugRunCheck(env.param_debug_run)
+//                    legionAirflow.deployAirflow()
+//                }
+//            }
+//        }
+//        
+//        /// Run Robot tests
+//        stage('Run regression tests'){
+//            when {
+//                expression { return param_use_regression_tests == "true" }
+//            }
+//            steps {
+//                script {
+//                    legion.ansibleDebugRunCheck(env.param_debug_run)
+//                    legionAirflow.runRobotTests(env.param_tests_tags ?: "")
+//                }
+//            }
+//        }
     }
 
     post {
