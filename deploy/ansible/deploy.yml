@@ -1,9 +1,9 @@
 ---
 ##################
-# Install Legion 
+# Install Legion Airflow
 ##################
 
-# Deploy airflow cluster to a specific enclave.
+# Deploy airflow to legion cluster.
 # Create aws resources if will be needed.
 
 # NOTICE:

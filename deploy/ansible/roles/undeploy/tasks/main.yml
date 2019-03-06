@@ -1,4 +1,17 @@
 ---
 
-- include: iam.yml
 - include: helm.yml
+- include: efs.yml
+- include: rds.yml
+- include: delete_iam_role.yaml
+- include: iam_policy.yml
+
+- name: Get cluster IAM roles
+  shell: "aws iam list-roles | grep '{{ cluster_name }}.*-airflow-role' | grep RoleName | awk '{print $2}'| tr -d '\"' |tr -d ','"
+  register: iam_roles
+
+- include_tasks: iam_role.yaml
+  loop: "{{ iam_roles.stdout_lines }}"
+  loop_control:
+    loop_var: iam_role
+

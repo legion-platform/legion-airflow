@@ -1,0 +1,18 @@
+---
+
+# Delete Airflow EFS
+- name: Delete Airflow EFS
+  efs:
+    state: absent
+    name:  "{{ env_name }}-airflow-efs"
+    region: "{{ aws_region }}"
+
+- name: Ensure EFS is deleted
+  pause:
+    seconds: 5
+
+- name: Delete Airflow EFS Security Group
+  ec2_group:
+    region: "{{ aws_region }}"
+    name: "{{ env_name }}-airflow-efs-sg"
+    state: absent

@@ -3,7 +3,7 @@
 # Install Legion 
 ##################
 
-# Undeploy airflow from specific enclave
+# Undeploy airflow from legion cluster
 
 # NOTICE:
 # You Must specify the next variables as extra vars (--extra-vars "XXXX=YYYY") 
