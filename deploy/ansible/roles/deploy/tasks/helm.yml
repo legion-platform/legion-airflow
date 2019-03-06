@@ -74,6 +74,10 @@
   args:
     chdir: ../helms
   when: helm_local_src == 'true'
+  ignore_errors: true
+
+- pause:
+    minutes: 30
 
 - name: Dump current HELM status
   shell: helm --kube-context {{ cluster_name }} status airflow-{{ enclave }}

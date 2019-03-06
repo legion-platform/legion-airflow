@@ -1,14 +1,14 @@
 ---
 # Create NFS storage for Airflow
 
-- name: Create EFS provisioner
-  template:
-    src: provisioner.yaml.j2
-    dest: "{{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
-    mode: 0644
-
-- name: Create NFS persistance provisioner
-  command: "kubectl --context {{ cluster_name }} apply -f {{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
+#- name: Create EFS provisioner
+#  template:
+#    src: provisioner.yaml.j2
+#    dest: "{{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
+#    mode: 0644
+#
+#- name: Create NFS persistance provisioner
+#  command: "kubectl --context {{ cluster_name }} apply -f {{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
 
 - name: Create PVC configuration
   template:
@@ -16,9 +16,9 @@
     dest: "{{ tmp_dir }}/airflow-pvc.{{ cluster_name }}.yaml"
     mode: 0644
 
-- name: Remove old PVC
-  shell: 'kubectl --context {{ cluster_name }} delete --ignore-not-found=true --namespace {{ enclave }} -f {{ tmp_dir }}/airflow-pvc.{{ cluster_name }}.yaml'
-  ignore_errors: yes
+#- name: Remove old PVC
+#  shell: 'kubectl --context {{ cluster_name }} delete --ignore-not-found=true --namespace {{ enclave }} -f {{ tmp_dir }}/airflow-pvc.{{ cluster_name }}.yaml'
+#  ignore_errors: yes
 
 - name: Apply new PVC
   shell: 'kubectl --context {{ cluster_name }} apply --namespace {{ enclave }} -f {{ tmp_dir }}/airflow-pvc.{{ cluster_name }}.yaml'
