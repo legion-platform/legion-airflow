@@ -1,4 +1,4 @@
-iam_airflow_role: "{{ cluster_name }}-{{ enclave_name }}-airflow-role"
+iam_airflow_role: "{{ cluster_name }}-{{ enclave }}-airflow-role"
 default_cluster_roles: 
   - bastion.{{ cluster_name }}
   - masters.{{ cluster_name }}

@@ -30,7 +30,7 @@ def undeployAirflow() {
     file(credentialsId: "vault-airflow", variable: 'vault')]) {
         withAWS(credentials: 'kops') {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
-                docker.image("${env.param_docker_repo}/k8s-airflow-ansible:${env.param_legion_version}").inside("-e HOME=/opt/legion/deploy -u root") {
+                docker.image("${env.param_docker_repo}/k8s-airflow-ansible:${env.param_legion_airflow_version}").inside("-e HOME=/opt/legion/deploy -u root") {
                     stage('Undeploy Legion') {
                         sh """
                         cd ${ansibleHome} && \

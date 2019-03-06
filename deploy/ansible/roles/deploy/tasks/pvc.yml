@@ -1,24 +1,41 @@
 ---
-# Create NFS storage for Airflow
+# Create K8S EFS PVC Provisioner
 
-#- name: Create EFS provisioner
-#  template:
-#    src: provisioner.yaml.j2
-#    dest: "{{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
-#    mode: 0644
-#
-#- name: Create NFS persistance provisioner
-#  command: "kubectl --context {{ cluster_name }} apply -f {{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
+- name: Get current status of EFS Provisioner
+  shell: 'kubectl --context {{ cluster_name }} --namespace kube-system get pods |grep efs-provisioner'
+  ignore_errors: yes
+  register: efs_provisioner_status
 
-- name: Create PVC configuration
+- set_fact:
+    efs_provisioner_created: "{{ efs_provisioner_status.stdout_lines|length > 1 }}"
+
+- name: Create EFS provisioner configuration
+  template:
+    src: provisioner.yaml.j2
+    dest: "{{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
+    mode: 0644
+  when: not efs_provisioner_created
+
+- name: Create K8S EFS Provisioner
+  command: "kubectl --context {{ cluster_name }} apply -f {{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
+  when: not efs_provisioner_created
+
+# Create Airflow PVC
+
+- name: Get airflow PVC status
+  shell: 'kubectl --context {{ cluster_name }} --namespace {{ enclave }} get pvc |grep {{ airflow_dags_pvc }}'
+  ignore_errors: yes
+  register: airflow_pvc_status
+
+- name: Remove old airflow PVC
+  shell: 'kubectl --context {{ cluster_name }} delete --ignore-not-found=true --namespace {{ enclave }} -f {{ tmp_dir }}/airflow-pvc.{{ cluster_name }}.yaml'
+  when: "{{ airflow_pvc_status.stdout_lines|length > 1 }}"
+
+- name: Create airflow PVC configuration
   template:
     src: airflow-pvc.yaml.j2
     dest: "{{ tmp_dir }}/airflow-pvc.{{ cluster_name }}.yaml"
     mode: 0644
 
-#- name: Remove old PVC
-#  shell: 'kubectl --context {{ cluster_name }} delete --ignore-not-found=true --namespace {{ enclave }} -f {{ tmp_dir }}/airflow-pvc.{{ cluster_name }}.yaml'
-#  ignore_errors: yes
-
-- name: Apply new PVC
+- name: Create airflow PVC
   shell: 'kubectl --context {{ cluster_name }} apply --namespace {{ enclave }} -f {{ tmp_dir }}/airflow-pvc.{{ cluster_name }}.yaml'

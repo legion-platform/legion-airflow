@@ -1,5 +1,5 @@
 ---
 
 - name: Remove legion chart
-  shell: helm --kube-context {{ cluster_name }} delete --purge airflow-{{ enclave_name }}
+  shell: helm --kube-context {{ cluster_name }} delete --purge airflow-{{ enclave }}
   ignore_errors: true

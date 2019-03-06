@@ -31,6 +31,10 @@
       include_vars:
         file: "{{ secrets_file }}"
 
+    - name: If enclave_name var will be passed than deploy airflow to this specific enclave
+      set_fact: enclaves=[{{ enclave_name }}]
+      when: enclave_name is defined and enclave_name | trim != ''
+
   post_tasks:
     - name: Delete secrets file
       file:
@@ -39,4 +43,10 @@
 
   roles:
     - common
-    - undeploy
+
+  tasks:
+    - include_role:
+        name: undeploy
+      with_items: "{{ enclaves }}"
+      loop_control:
+        loop_var: enclave
