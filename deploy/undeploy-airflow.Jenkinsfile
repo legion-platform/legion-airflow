@@ -61,29 +61,14 @@ pipeline {
         }
 
         stage('Deploy Ariflow') {
-            when {
-                expression {return param_deploy_airflow == "true" }
-            }
             steps {
                 script {
                     legion.ansibleDebugRunCheck(env.param_debug_run)
-                    legionAirflow.deployAirflow()
+                    legionAirflow.undeployAirflow()
                 }
             }
         }
         
-        /// Run Robot tests
-        stage('Run regression tests'){
-            when {
-                expression { return param_use_regression_tests == "true" }
-            }
-            steps {
-                script {
-                    legion.ansibleDebugRunCheck(env.param_debug_run)
-                    legionAirflow.runRobotTests(env.param_tests_tags ?: "")
-                }
-            }
-        }
     }
 
     post {

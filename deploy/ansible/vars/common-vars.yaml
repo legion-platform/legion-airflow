@@ -1,0 +1,16 @@
+---
+# Cluster specific data
+env_name: legion-dev
+env_type: dev
+base_domain: epm.kharlamov.biz
+cluster_name: "{{ profile }}"
+namespace: "{{ enclave }}"
+secrets_bucket: "legion-cluster"
+
+# Other
+tmp_dir: /tmp
+helm_local_src: false
+enclaves:
+  - company-a
+#domain_delimiter: "-"
+#source_secret_name: "{{ base_domain }}-tls"

@@ -1,0 +1,6 @@
+---
+# RDS database
+airflow_rds_engine: "postgres"
+airflow_rds_shape: "db.t2.medium"
+airflow_rds_size: "50"
+airflow_rds_engine_version: "10.4"
