@@ -1,0 +1,18 @@
+---
+
+# Make sure kubectl is configured with proper cluster
+- name: Configure kubectl using kops
+  shell: "kops export kubecfg --name {{ cluster_name }} --state {{ state_store }}"
+
+- name: Create EFS provisioner
+  template:
+    src: provisioner.yaml.j2
+    dest: "{{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
+    mode: 0644
+
+- name: Create NFS persistance provisioner
+  command: "kubectl --context {{ cluster_name }} apply -f {{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
+
+- name: Wait for provisioner startup
+  pause:
+    seconds: 20

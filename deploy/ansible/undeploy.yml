@@ -1,0 +1,52 @@
+---
+##################
+# Install Legion 
+##################
+
+# Undeploy airflow from legion cluster
+
+# NOTICE:
+# You Must specify the next variables as extra vars (--extra-vars "XXXX=YYYY") 
+# profile - unique cluster name
+# Optional arguments:
+# pypi_repo - rewrite pypi repo endpoint
+# docker_repo - rewrite docker registry endpoint
+
+- hosts: localhost
+  connection: local
+  gather_facts: True
+  vars_files:
+    - "{{ lookup('env', 'PROFILES_PATH') or '../profiles' }}/{{ profile }}.yml"
+    - vars/common-vars.yaml
+
+  pre_tasks:
+    - name: Download secrets from S3
+      aws_s3:
+        bucket: "{{ secrets_bucket }}"
+        object: "vault/{{ profile }}"
+        dest: "{{ secrets_file }}"
+        mode: get
+
+    - name: Include vars
+      include_vars:
+        file: "{{ secrets_file }}"
+
+    - name: If enclave_name var will be passed than deploy airflow to this specific enclave
+      set_fact: enclaves=[{{ enclave_name }}]
+      when: enclave_name is defined and enclave_name | trim != ''
+
+  post_tasks:
+    - name: Delete secrets file
+      file:
+        name: "{{ secrets_file }}"
+        state: absent
+
+  roles:
+    - common
+
+  tasks:
+    - include_role:
+        name: undeploy
+      with_items: "{{ enclaves }}"
+      loop_control:
+        loop_var: enclave

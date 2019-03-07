@@ -1,0 +1,25 @@
+---
+# Cluster specific data
+env_name: legion-dev
+vendor: legion
+env_type: dev
+base_domain: epm.kharlamov.biz
+cluster_name: "{{ profile }}"
+namespace: "{{ enclave }}"
+secrets_bucket: "legion-cluster"
+aws_region: us-east-2
+vpc_id: vpc-5729c13e
+cluster_zones:
+  - zone_name: us-east-2a
+  - zone_name: us-east-2b
+  - zone_name: us-east-2c
+private_network: '172.31'
+
+# Other
+tmp_dir: /tmp
+helm_local_src: false
+enclaves:
+  - company-a
+#domain_delimiter: "-"
+#source_secret_name: "{{ base_domain }}-tls"
+

@@ -1,0 +1,7 @@
+---
+
+- name: Configure kubectl using kops
+  shell: "kops export kubecfg --name {{ cluster_name }} --state {{ state_store }}"
+
+- include: create_enclave_resources.yml
+- include: install_airflow.yml
