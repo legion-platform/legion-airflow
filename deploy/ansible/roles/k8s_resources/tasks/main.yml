@@ -4,15 +4,23 @@
 - name: Configure kubectl using kops
   shell: "kops export kubecfg --name {{ cluster_name }} --state {{ state_store }}"
 
+- name: Get current status of EFS Provisioner
+  shell: "kubectl --context {{ cluster_name }} --namespace kube-system get pods |grep efs-provisioner"
+  ignore_errors: yes
+  register: efs_provisioner_status
+
 - name: Create EFS provisioner
   template:
     src: provisioner.yaml.j2
     dest: "{{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
     mode: 0644
+  when: efs_provisioner_status.stdout.find("efs-provisioner") == -1
 
 - name: Create NFS persistance provisioner
   command: "kubectl --context {{ cluster_name }} apply -f {{ tmp_dir }}/provisioner.yaml.{{ cluster_name }}.j2"
+  when: efs_provisioner_status.stdout.find("efs-provisioner") == -1
 
 - name: Wait for provisioner startup
   pause:
     seconds: 10
+  when: efs_provisioner_status.stdout.find("efs-provisioner") == -1
