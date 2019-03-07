@@ -14,12 +14,38 @@ cluster_zones:
   - zone_name: us-east-2b
   - zone_name: us-east-2c
 private_network: '172.31'
-
-# Other
 tmp_dir: /tmp
 helm_local_src: false
 enclaves:
   - company-a
-#domain_delimiter: "-"
-#source_secret_name: "{{ base_domain }}-tls"
 
+# RDS database
+airflow_rds_engine: "postgres"
+airflow_rds_shape: "db.t2.medium"
+airflow_rds_size: "50"
+airflow_rds_engine_version: "10.4"
+airflow_rds_engine: "postgres"
+airflow_rds_engine_version: "10.4"
+
+# S3 storage 
+legion_data_bucket_prefix: epm-legion-data
+legion_data_s3_bucket: "{{ legion_data_bucket_prefix }}-{{ env_type }}-{{ enclave }}"
+airflow_s3_logs_path: 'airflow-logs/'
+airflow_s3_logs_url: "s3://{{ legion_data_s3_bucket }}/{{ airflow_s3_logs_path }}"
+
+# EFS PVC for Dags
+storageclass: efs
+airflow_dags_dir: '/airflow-dags'
+airflow_dags_pvc: legion-airflow-dags
+airflow_pvc: 200m
+
+# Other
+root_domain: "{{ enclave }}.{{ base_domain }}"
+airflow_db_schema: "{{ enclave }}"
+airflow_db_enclave_user: "{{ enclave }}"
+
+# K8S POD parameters
+airflow_worker_cpu_requests: "1500m"
+airflow_worker_cpu_limits: "2000m"
+airflow_worker_mem_requests: "1000Mi"
+airflow_worker_mem_limits: "2500Mi"

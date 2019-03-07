@@ -15,4 +15,4 @@
 
 - name: Wait for provisioner startup
   pause:
-    seconds: 20
+    seconds: 10
