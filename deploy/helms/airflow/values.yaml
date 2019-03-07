@@ -124,10 +124,6 @@ storage:
   accessMode: ReadWriteMany
   persistenceSize: 20Gi
   storageClass: 'efs'
-
-  use_specified_pvc: false
-  pvc_name: ''
-
   bucket_name: ''
 
 ingress:

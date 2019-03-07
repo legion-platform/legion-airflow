@@ -75,9 +75,5 @@ spec:
             path: airflow.cfg
       - name: dag-volume
         persistentVolumeClaim:
-          {{- if .Values.storage.use_specified_pvc }}
-          claimName: {{ .Values.storage.pvc_name }}
-          {{- else}}
-          claimName: "{{ .Release.Name }}-dag-pvc"
-          {{- end}}
+          claimName: "{{ .Values.storage.dags_volume_pvc }}"
 

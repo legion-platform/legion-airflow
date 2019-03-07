@@ -86,6 +86,10 @@
     object: "/{{ airflow_s3_logs_path }}"
     mode: create
 
+- name: Wait for PVC creation
+  pause:
+    seconds: 30
+
 # Create IAM roles
 - name: Generate Trust policy documents
   template:

@@ -15,3 +15,6 @@ helm_local_src: false
 model_docker_protocol: https
 model_resources_cpu: 256m
 model_resources_mem: 256Mi
+airflow_dags_pvc: legion-airflow-dags
+airflow_pvc: 200m
+storageclass: efs

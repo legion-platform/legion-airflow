@@ -77,10 +77,8 @@ slack:
   token: {{ airflow.slack.token | default('~') }}
 
 storage:
-  use_specified_pvc: true
   dags_volume_pvc: "{{ airflow_dags_pvc }}"
   airflow_dags_directory: "{{ airflow_dags_dir }}"
-  pvc_name: "{{ airflow_dags_pvc }}"
   s3_root_path: "s3://{{legion_data_s3_bucket}}/"
   bucket_name: "{{ legion_data_s3_bucket }}"
 
