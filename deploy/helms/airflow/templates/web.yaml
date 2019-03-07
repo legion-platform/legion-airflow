@@ -77,26 +77,26 @@ spec:
           mountPath: "{{ .Values.storage.airflow_dags_directory }}"
         - name: airflow-config-dir
           mountPath: /home/airflow/config
-        ports:
-        - name: web
-          containerPort: 8080
-        args: ["airflow", "webserver"]
-        livenessProbe:
-          httpGet:
-            path: /admin/airflow/dag_stats
-            port: 8080
-          initialDelaySeconds: 60
-          periodSeconds: 5
-          failureThreshold: 12
-          timeoutSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /admin/rest_api/api?api=rest_api_plugin_version
-            port: 8080
-          initialDelaySeconds: 60
-          periodSeconds: 5
-          failureThreshold: 24
-          timeoutSeconds: 10
+#        ports:
+#        - name: web
+#          containerPort: 8080
+#        args: ["airflow", "webserver"]
+#        livenessProbe:
+#          httpGet:
+#            path: /admin/airflow/dag_stats
+#            port: 8080
+#          initialDelaySeconds: 60
+#          periodSeconds: 5
+#          failureThreshold: 12
+#          timeoutSeconds: 10
+#        readinessProbe:
+#          httpGet:
+#            path: /admin/rest_api/api?api=rest_api_plugin_version
+#            port: 8080
+#          initialDelaySeconds: 60
+#          periodSeconds: 5
+#          failureThreshold: 24
+#          timeoutSeconds: 10
       volumes:
       - name: airflow-config-dir
         configMap:
