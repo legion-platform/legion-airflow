@@ -49,7 +49,7 @@
     - commons
     - helm
     - aws_resources
-    - k8s_resources
+#    - k8s_resources
 
   tasks:
     - include_role:
