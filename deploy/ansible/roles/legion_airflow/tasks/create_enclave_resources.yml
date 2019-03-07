@@ -60,7 +60,7 @@
 - name: "Set search_path (Schema) for Postgres user"
   shell: PGPASSWORD="{{ aws.rds.password }}" psql -h "{{ airflow_rds_instance_facts.instance.endpoint }}" -U"{{ aws.rds.username }}" < {{ tmp_dir }}/alter_role.{{ cluster_name }}.sql
 
-# Create NFS storage for Airflow
+# Create EFS storage for Airflow
 - name: Create PVC configuration
   template:
     src: airflow-pvc.yaml.j2

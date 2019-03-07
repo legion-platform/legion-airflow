@@ -53,7 +53,7 @@
 
   tasks:
     - include_role:
-        name: legion_enclave
+        name: legion_airflow
       with_items: "{{ enclaves }}"
       loop_control:
         loop_var: enclave
