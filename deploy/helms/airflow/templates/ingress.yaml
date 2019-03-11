@@ -14,7 +14,7 @@ metadata:
   name: "{{ .Release.Name }}-web"
 spec:
   rules:
-    - host: "{{ .Values.ingress.domain.partial }}{{ .Values.domainDelimiter }}{{ .Values.rootDomain }}"
+    - host: "airflow-{{ .Values.enclave }}.{{ .Values.rootDomain }}"
       http:
         paths:
           - backend:
@@ -30,7 +30,7 @@ spec:
               servicePort: 8080
     {{- end }}
     {{- if .Values.ingress.flowerEnabled}}
-    - host: "{{ .Values.ingress.domain.flowerPartial }}{{ .Values.domainDelimiter }}{{ .Values.rootDomain }}"
+    - host: "flower-{{ .Values.enclave }}.{{ .Values.rootDomain }}"
       http:
         paths:
           - backend:
@@ -49,12 +49,12 @@ spec:
   {{- if .Values.ingress.tls.enabled }}
   tls:
   - hosts:
-    - "{{ .Values.ingress.domain.partial }}{{ .Values.domainDelimiter }}{{ .Values.rootDomain }}"
+    - "airflow-{{ .Values.enclave }}.{{ .Values.rootDomain }}"
     {{- if .Values.ingress.flowerEnabled}}
-    - "{{ .Values.ingress.domain.flowerPartial }}{{ .Values.domainDelimiter }}{{ .Values.rootDomain }}"
+    - "flower-{{ .Values.enclave }}.{{ .Values.rootDomain }}"
     {{- end }}
     {{- if .Values.ingress.tls.autoSecretNameDeduction }}
-    secretName: "{{ .Values.rootDomain }}-tls"
+    secretName: "{{ .Values.enclave }}.{{ .Values.rootDomain }}-tls"
     {{- else }}
     secretName: {{ .Values.tls.secretName  }}
     {{- end }}

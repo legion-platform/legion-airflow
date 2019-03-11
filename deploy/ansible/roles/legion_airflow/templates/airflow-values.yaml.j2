@@ -2,7 +2,7 @@ namespace: default
 awsAccountId: {{ aws.account_id }}
 clusterName: {{ cluster_name }}
 enclave: {{ enclave }}
-rootDomain: {{ root_domain }}
+rootDomain: {{ cluster_name }}
 localDomain: "cluster.local"
 
 
@@ -81,6 +81,8 @@ storage:
   airflow_dags_directory: "{{ airflow_dags_dir }}"
   s3_root_path: "s3://{{legion_data_s3_bucket}}/"
   bucket_name: "{{ legion_data_s3_bucket }}"
+  storageclass: "{{ storageclass }}"
+  persistence_size: "{{ airflow_pvc }}"
 
 ingress:
   enabled: true

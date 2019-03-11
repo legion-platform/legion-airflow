@@ -20,7 +20,6 @@
   gather_facts: True
 
   vars_files:
-#    - "{{ lookup('env', 'PROFILES_PATH') or '../profiles' }}/{{ profile }}.yml"
     - vars/common-vars.yaml
 
   pre_tasks:
@@ -49,7 +48,7 @@
     - commons
     - helm
     - aws_resources
-#    - k8s_resources
+    - k8s_resources
 
   tasks:
     - include_role:

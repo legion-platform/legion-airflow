@@ -16,7 +16,6 @@
   connection: local
   gather_facts: True
   vars_files:
-    - "{{ lookup('env', 'PROFILES_PATH') or '../profiles' }}/{{ profile }}.yml"
     - vars/common-vars.yaml
 
   pre_tasks:

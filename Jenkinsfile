@@ -34,8 +34,6 @@ pipeline {
             param_force_tag_push = "${params.ForceTagPush}"
             //Push release to master bransh
             param_update_master = "${params.UpdateMaster}"
-            //Upload legion python package to pypi
-            param_upload_legion_package = "${params.UploadLegionPackage}"
             //Set next releases version explicitly
             param_next_version = "${params.NextVersion}"
             // Update version string
@@ -48,9 +46,6 @@ pipeline {
             param_helm_repository = "${params.HelmRepository}"
             param_pypi_repository = "${params.PyPiRepository}"
             param_local_pypi_distribution_target_name = "${params.LocalPyPiDistributionTargetName}"
-            param_test_pypi_distribution_target_name = "${params.testPyPiDistributionTargetName}"
-            param_public_pypi_distribution_target_name = "${params.PublicPyPiDistributionTargetName}"
-            param_pypi_distribution_target_name = "${params.PyPiDistributionTargetName}"
             param_docker_registry = "${params.DockerRegistry}"
             param_docker_hub_registry = "${params.DockerHubRegistry}"
             ///Job parameters
@@ -64,12 +59,14 @@ pipeline {
                 cleanWs()
                 checkout scm
                 script {
+                    sh 'echo RunningOn: $(curl http://checkip.amazonaws.com/)'
                     // Import legion-airflow components
                     legionAirflow = load "${env.sharedLibPath}"
 
                     // import Legion components
                     dir ("${WORKSPACE}/legion") {
-                        git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
+                        checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version_tag}"]]], poll: false
+                        //git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
                         legion = load "${env.legionSharedLibPath}"\
                     }
 
@@ -100,13 +97,13 @@ pipeline {
                     /// Define build version
                     if (env.param_stable_release) {
                         if (env.param_release_version ){
-                            Globals.buildVersion = sh returnStdout: true, script: "python tools/update_version_id  --build-version=${env.param_release_version} legion/legion/version.py ${env.BUILD_NUMBER} '${BUILD_USER}'"
+                            Globals.buildVersion = sh returnStdout: true, script: "python tools/update_version_id  --build-version=${env.param_release_version} legion_airflow/legion_airflow/version.py ${env.BUILD_NUMBER} '${BUILD_USER}'"
                         } else {
                             print('Error: ReleaseVersion parameter must be specified for stable release')
                             exit 1
                         }
                     } else {
-                        Globals.buildVersion = sh returnStdout: true, script: "python tools/update_version_id  legion/legion/version.py ${env.BUILD_NUMBER} '${BUILD_USER}'"
+                        Globals.buildVersion = sh returnStdout: true, script: "python tools/update_version_id  legion_airflow/legion_airflow/version.py ${env.BUILD_NUMBER} '${BUILD_USER}'"
                     }
 
                     Globals.buildVersion = Globals.buildVersion.replaceAll("\n", "")
@@ -120,7 +117,7 @@ pipeline {
                     sh """
                     rm -f $envFile
                     touch $envFile
-                    echo "LEGION_VERSION=${Globals.buildVersion}" >> $envFile
+                    echo "LEGION_AIRFLOW_VERSION=${Globals.buildVersion}" >> $envFile
                     """
                     archiveArtifacts envFile
                     sh "rm -f $envFile"
@@ -224,7 +221,7 @@ pipeline {
                 script {
                     legion.pullDockerCache(['ubuntu:18.04'], 'k8s-ansible')
                     sh """
-                    docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow:${env.param_docker_cache_source} --build-arg version="${Globals.buildVersion}" -t legion/k8s-airflow:${Globals.buildVersion} ${Globals.dockerLabels} -f k8s/airflow/Dockerfile .
+                    docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow:${env.param_docker_cache_source} --build-arg version="${Globals.buildVersion}" --build-arg pip_extra_index_params="--extra-index-url ${env.param_pypi_repository}" --build-arg pip_legion_version_string="==${env.param_legion_version_tag}" -t legion/k8s-airflow:${Globals.buildVersion} ${Globals.dockerLabels} -f k8s/airflow/Dockerfile .
                     """
                 }
             }
@@ -344,8 +341,9 @@ pipeline {
         always {
             script {
                 dir ("${WORKSPACE}/legion") {
-                        git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
-                        legion = load "${env.legionSharedLibPath}"\
+                        // git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
+                        checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version_tag}"]]], poll: false
+                        legion = load "${env.legionSharedLibPath}"
                     }
                 legion.notifyBuild(currentBuild.currentResult)
             }

@@ -1,0 +1,18 @@
+---
+
+- include: airflow-chart.yaml
+- include: efs-provisioner.yaml
+- include: aws-resources.yaml
+
+- name: Get cluster IAM roles
+  shell: "aws iam list-roles | grep '{{ cluster_name }}.*-airflow-role' | grep RoleName | awk '{print $2}'| tr -d '\"' |tr -d ','"
+  register: iam_roles
+
+- name: List airflow roles to be deleted
+  debug:
+    var: iam_roles
+
+- include_tasks: iam-role.yml
+  loop: "{{ iam_roles.stdout_lines }}"
+  loop_control:
+    loop_var: iam_role

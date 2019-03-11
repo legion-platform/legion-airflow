@@ -1,10 +1,12 @@
 ---
 # Cluster specific data
-env_name: legion-dev
 vendor: legion
-env_type: dev
-base_domain: epm.kharlamov.biz
-cluster_name: "{{ profile }}"
+route53_zone: epm.kharlamov.biz
+env_name: "{{ param_env_name }}"
+base_domain: "{{ env_name }}.{{ route53_zone }}"
+cluster_name: "{{ env_name }}.{{ route53_zone }}"
+profile: "{{ env_name }}.{{ route53_zone }}"
+state_store: s3://legion-cluster
 namespace: "{{ enclave }}"
 secrets_bucket: "legion-cluster"
 aws_region: us-east-2
@@ -26,10 +28,12 @@ airflow_rds_size: "50"
 airflow_rds_engine_version: "10.4"
 airflow_rds_engine: "postgres"
 airflow_rds_engine_version: "10.4"
+airflow_db_schema: "{{ enclave }}"
+airflow_db_enclave_user: "{{ enclave }}"
 
 # S3 storage 
 legion_data_bucket_prefix: epm-legion-data
-legion_data_s3_bucket: "{{ legion_data_bucket_prefix }}-{{ env_type }}-{{ enclave }}"
+legion_data_s3_bucket: "{{ legion_data_bucket_prefix }}-{{ env_name }}-{{ enclave }}"
 airflow_s3_logs_path: 'airflow-logs/'
 airflow_s3_logs_url: "s3://{{ legion_data_s3_bucket }}/{{ airflow_s3_logs_path }}"
 
@@ -38,11 +42,6 @@ storageclass: efs
 airflow_dags_dir: '/airflow-dags'
 airflow_dags_pvc: legion-airflow-dags
 airflow_pvc: 200m
-
-# Other
-root_domain: "{{ enclave }}.{{ base_domain }}"
-airflow_db_schema: "{{ enclave }}"
-airflow_db_enclave_user: "{{ enclave }}"
 
 # K8S POD parameters
 airflow_worker_cpu_requests: "1500m"

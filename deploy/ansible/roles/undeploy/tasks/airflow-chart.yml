@@ -1,0 +1,8 @@
+---
+
+- name: Remove airflow chart
+  shell: helm --kube-context {{ cluster_name }} delete --purge airflow-{{ enclave_name }}
+  ignore_errors: true
+
+- name: WORKAROUND delete pods in phase terminating
+  shell: kubectl --context {{ cluster_name }} --namespace {{ enclave_name }}  delete --grace-period=0 --force po $(kubectl --context {{ cluster_name }} --namespace {{ enclave_name }} get po -o wide | grep Terminating | awk '{ print $1 }') || true

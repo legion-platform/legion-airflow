@@ -40,6 +40,9 @@ ENV LC_ALL="en_US.UTF-8" \
     LANG="en_US.UTF-8" \
     LANGUAGE="en_US.UTF-8"
 
+# Install Legion package
+RUN pip3 install $pip_extra_index_params legion$pip_legion_version_string
+
 # Copy legion-airflow soures and set permissions
 COPY legion_airflow/ ${AIRFLOW_HOME}/
 COPY k8s/airflow/create_secrets.py k8s/airflow/init.sh ${AIRFLOW_HOME}/
@@ -50,10 +53,13 @@ RUN chown -R airflow: ${AIRFLOW_HOME} && chmod -R 775 ${AIRFLOW_HOME} && \
 RUN pip3 install --disable-pip-version-check --upgrade pip==9.0.3 pipenv==2018.10.13 && \
     cd ${AIRFLOW_HOME} && pipenv install --system --deploy --python python3 
 
+# TODO resolve hack for dependency conflict
+RUN pip3 install Jinja2==2.10
+
 # Install legion-airflow from sources
 RUN cd ${AIRFLOW_HOME} && python3 setup.py develop
 
 USER airflow
-WORKDIR "$AIRFLOW_HOME"
-ENTRYPOINT "sh"
-CMD "${AIRFLOW_HOME}/init.sh"
+WORKDIR ${AIRFLOW_HOME}
+
+ENTRYPOINT ["sh", "/home/airflow/init.sh"]
