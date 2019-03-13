@@ -14,6 +14,20 @@
 #    limitations under the License.
 #
 """
-Connections to external APIs
+Variables loader 
 """
-from .base_grafana_client import BaseGrafanaClient
+
+import legion_airflow_test.profiler_loader
+
+
+def get_variables(arg):
+    """
+    Gather and return all variables to robot
+
+    :param arg: path to directory with profiles
+    :type args: str
+    :return: dict[str, Any] -- values for robot
+    """
+    variables = legion_airflow_test.profiler_loader.get_variables(arg)
+
+    return variables

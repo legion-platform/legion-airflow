@@ -75,7 +75,7 @@ pipeline {
                 }
             }
         }
-        
+
         /// Run Robot tests
         stage('Run regression tests'){
             when {

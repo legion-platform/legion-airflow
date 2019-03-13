@@ -55,7 +55,7 @@ def runRobotTests(tags="") {
     file(credentialsId: "vault-${env.param_profile}", variable: 'vault')]) {
         withAWS(credentials: 'kops') {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
-                docker.image("${env.param_docker_repo}/legion-docker-agent:${env.param_legion_version}").inside("-e HOME=/opt/legion/deploy -v ${WORKSPACE}/deploy/profiles:/opt/legion/deploy/profiles -u root") {
+                docker.image("${env.param_docker_repo}/airflow-docker-agent:${env.param_legion_version}").inside("-e HOME=/opt/legion/deploy -v ${WORKSPACE}/legion/deploy/profiles:/opt/legion/deploy/profiles -u root") {
                     stage('Run Robot tests') {
                         dir("${WORKSPACE}"){
                             def nose_report = 0
@@ -76,39 +76,7 @@ def runRobotTests(tags="") {
                                 }
                             env.robot_tags= robot_tags.join(" ")
                             env.nose_tags = nose_tags.join(" ")
-                            sh """
-                            echo "Starting robot tests"
-                            cd tests/robot
-                            rm -f *.xml
-
-                            PATH_TO_PROFILES_DIR=\"../../deploy/ansible/vars\"
-                            PATH_TO_PROFILE_FILE=\"\$PATH_TO_PROFILES_DIR/common-vars.yaml\"
-                            PATH_TO_COOKIES=\"\$PATH_TO_PROFILES_DIR/cookies.dat\"
-
-                            export CLUSTER_NAME=\"\$(yq -r .cluster_name \$PATH_TO_PROFILE_FILE)\"
-                            export CLUSTER_STATE_STORE=\"\$(yq -r .state_store \$PATH_TO_PROFILE_FILE)\"
-                            echo \"Loading kubectl config from \$CLUSTER_STATE_STORE for cluster \$CLUSTER_NAME\"
-                            export CREDENTIAL_SECRETS=airflow_secrets.yaml"
-
-                            aws s3 cp \$CLUSTER_STATE_STORE/vault/${env.param_profile} airflow_secrets.yaml
-                            ansible-vault decrypt --vault-password-file=${vault} --output \$CREDENTIAL_SECRETS airflow_secrets.yaml
-
-                            kops export kubecfg --name \$CLUSTER_NAME --state \$CLUSTER_STATE_STORE
-                            
-                            # Start Xvfb server in background
-                            Xvfb :99 -ac &
-
-                            # Get Auth cookies
-                            DISPLAY=:99 \
-                            PROFILE=${env.param_profile} LEGION_VERSION=${env.param_legion_version} \
-                            jenkins_dex_client --path-to-profiles \$PATH_TO_PROFILES_DIR > \$PATH_TO_COOKIES
-
-                            # Run Robot tests
-                            DISPLAY=:99 \
-                            PROFILE=${env.param_profile} LEGION_VERSION=${env.param_legion_version} PATH_TO_COOKIES=\$PATH_TO_COOKIES \
-                            pabot --verbose --processes 6 --variable PATH_TO_PROFILES_DIR:\$PATH_TO_PROFILES_DIR --listener legion_test.process_reporter ${env.robot_tags} --outputdir . tests/**/*.robot || true
-
-                            """
+                            sh "./tests/robot/run_robot_tests.sh ${env.param_profile} ${env.param_legion_version}"
 
                             robot_report = sh(script: 'find tests/robot/ -name "*.xml" | wc -l', returnStdout: true)
 

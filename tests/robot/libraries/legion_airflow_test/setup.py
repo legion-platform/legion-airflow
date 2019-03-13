@@ -46,20 +46,15 @@ def extract_version(filename):
             raise RuntimeError("Unable to find version string in %s." % (file_content,))
 
 
-setup(name='legion_test',
-      version=extract_version(os.path.join(PACKAGE_ROOT_PATH, 'legion_test', 'version.py')),
+setup(name='legion_airflow_test',
+      version=extract_version(os.path.join(PACKAGE_ROOT_PATH, 'legion_airflow_test', 'version.py')),
       description='Legion CI tools',
       url='http://github.com/akharlamov/legion-root',
       author='Alexey Kharlamov, Kirill Makhonin',
       author_email='alexey@kharlamov.biz, kirill@makhonin.biz',
       license='Apache v2',
-      packages=['legion_test'],
+      packages=['legion_airflow_test'],
       include_package_data=True,
-      scripts=['bin/create_example_jobs',
-               'bin/legion_bootstrap_grafana',
-               'bin/check_jenkins_jobs',
-               'bin/copyright_scanner',
-               'bin/jenkins_dex_client'],
       install_requires=extract_requirements(os.path.join(PACKAGE_ROOT_PATH, 'requirements', 'base.txt')),
       test_suite='nose.collector',
       tests_require=extract_requirements(os.path.join(PACKAGE_ROOT_PATH, 'requirements', 'test.txt')),

@@ -21,7 +21,7 @@ import json
 
 import boto3
 
-import legion_test.utils
+import legion_airflow_test.utils
 
 
 class S3:
@@ -200,7 +200,7 @@ class S3:
             if all_data and required_count == 0:
                 return all_data
 
-        result = legion_test.utils.wait_until(check_function,
+        result = legion_airflow_test.utils.wait_until(check_function,
                                               self.WAIT_FILE_TIME, self.WAIT_FILE_ITERATIONS)
         if not result:
             raise Exception('{} log line(s) with {!r} has not been found'.format(required_count, needle_substring))

@@ -228,7 +228,7 @@ class Utils:
         :return: response_code and response_text after auth try
         :rtype: dict
         """
-        from legion_test.robot.dex_client import REQUEST_ID_REGEXP, AUTHENTICATION_PATH
+        from legion_airflow_test.robot.dex_client import REQUEST_ID_REGEXP, AUTHENTICATION_PATH
         import re
 
         session = requests.Session()
@@ -264,7 +264,7 @@ class Utils:
         import os
 
         import yaml
-        from legion_test.profiler_loader import CREDENTIAL_SECRETS_ENVIRONMENT_KEY
+        from legion_airflow_test.profiler_loader import CREDENTIAL_SECRETS_ENVIRONMENT_KEY
         secrets = os.getenv(CREDENTIAL_SECRETS_ENVIRONMENT_KEY)
         if not secrets:
             raise Exception(

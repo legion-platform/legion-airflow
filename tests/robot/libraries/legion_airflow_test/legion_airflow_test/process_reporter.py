@@ -22,7 +22,7 @@ import sys
 import logging
 import contextlib
 
-import legion_test.robot.framework_extensions
+import legion_airflow_test.robot.framework_extensions
 
 
 ROBOT_LISTENER_API_VERSION = 3
@@ -99,15 +99,16 @@ def kill_and_report_process(popen_object):
         LOGGER.error('Cannot kill process: {!r}'.format(kill_exception))
 
 
-def end_test(result):
+def end_test(test, result):  # pylint: disable=W0613
     """
     Listener for Robot's "end of test" event
 
+    :param test: test
     :param result: test result
     :return: None
     """
     if not result.passed:
-        process_lib = legion_test.robot.framework_extensions.get_imported_library_instance('Process')
+        process_lib = legion_airflow_test.robot.framework_extensions.get_imported_library_instance('Process')
         if process_lib:
             all_processes = process_lib._processes._connections
             all_results = process_lib._results

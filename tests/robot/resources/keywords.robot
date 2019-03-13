@@ -5,12 +5,9 @@ Library             String
 Library             OperatingSystem
 Library             Collections
 Library             DateTime
-Library             legion_test.robot.K8s
-Library             legion_test.robot.Jenkins
-Library             legion_test.robot.Utils
-Library             legion_test.robot.Grafana
-Library             legion_test.robot.Airflow
-Library             legion_test.robot.Process
+Library             legion_airflow_test.robot.Utils
+Library             legion_airflow_test.robot.Airflow
+Library             legion_airflow_test.robot.Flower
 
 *** Keywords ***
 Connect to enclave Airflow
@@ -21,32 +18,14 @@ Connect to enclave Flower
     [Arguments]           ${enclave}
     Connect to Flower    ${HOST_PROTOCOL}://flower-${enclave}.${HOST_BASE_DOMAIN}
 
-Shell
-    [Arguments]           ${command}
-    ${result}=            Run Process without PIPE   ${command}    shell=True
-    Log                   stdout = ${result.stdout}
-    Log                   stderr = ${result.stderr}
-    [Return]              ${result}
-
-Get token from EDI
-    [Documentation]  get token from EDI for the EDGE session
-    [Arguments]     ${enclave}   ${model_id}   ${model_version}
-    &{data} =             Create Dictionary    model_id=${model_id}    model_version=${model_version}
-    &{resp} =             Execute post request    ${HOST_PROTOCOL}://edi-${enclave}.${HOST_BASE_DOMAIN}/api/1.0/generate_token  data=${data}  cookies=${DEX_COOKIES}
-    Log                   ${resp["text"]}
-    Should not be empty   ${resp}
-    &{token} =  Evaluate  json.loads('''${resp["text"]}''')    json
-    Log                   ${token}
-    Set Suite Variable    ${TOKEN}    ${token['token']}
-
     # --------- TEMPLATE KEYWORDS SECTION -----------
 
 Check if component domain has been secured
     [Arguments]     ${component}    ${enclave}
     [Documentation]  Check that a legion component is secured by auth
-    ${jenkins} =     Run Keyword If   '${component}' == 'jenkins'    Set Variable    True
+    ${airflow} =     Run Keyword If   '${component}' == 'airflow'    Set Variable    True
     ...    ELSE      Set Variable    False
-    ${boolean} =     Convert To Boolean    ${jenkins}
+    ${boolean} =     Convert To Boolean    ${airflow}
     &{response} =    Run Keyword If   '${enclave}' == '${EMPTY}'    Get component auth page    ${HOST_PROTOCOL}://${component}.${HOST_BASE_DOMAIN}    ${boolean}
     ...    ELSE      Get component auth page    ${HOST_PROTOCOL}://${component}-${enclave}.${HOST_BASE_DOMAIN}    ${boolean}
     Log              Auth page for ${component} is ${response}
@@ -57,9 +36,9 @@ Check if component domain has been secured
 Secured component domain should not be accessible by invalid credentials
     [Arguments]     ${component}    ${enclave}
     [Documentation]  Check that a secured legion component does not provide access by invalid credentials
-    ${jenkins} =     Run Keyword If   '${component}' == 'jenkins'    Set Variable    True
+    ${airflow} =     Run Keyword If   '${component}' == 'airflow'    Set Variable    True
     ...    ELSE      Set Variable    False
-    ${boolean} =     Convert To Boolean    ${jenkins}
+    ${boolean} =     Convert To Boolean    ${airflow}
     &{creds} =       Create Dictionary 	login=admin   password=admin
     &{response} =    Run Keyword If   '${enclave}' == '${EMPTY}'    Post credentials to auth    ${HOST_PROTOCOL}://${component}    ${HOST_BASE_DOMAIN}    ${creds}    ${boolean}
     ...    ELSE      Post credentials to auth    ${HOST_PROTOCOL}://${component}-${enclave}     ${HOST_BASE_DOMAIN}    ${creds}    ${boolean}
@@ -72,9 +51,9 @@ Secured component domain should not be accessible by invalid credentials
 Secured component domain should be accessible by valid credentials
     [Arguments]     ${component}    ${enclave}
     [Documentation]  Check that a secured legion component does not provide access by invalid credentials
-    ${jenkins} =     Run Keyword If   '${component}' == 'jenkins'    Set Variable    True
+    ${airflow} =     Run Keyword If   '${component}' == 'airflow'    Set Variable    True
     ...    ELSE      Set Variable    False
-    ${boolean} =     Convert To Boolean    ${jenkins}
+    ${boolean} =     Convert To Boolean    ${airflow}
     &{creds} =       Create Dictionary    login=${STATIC_USER_EMAIL}    password=${STATIC_USER_PASS}
     &{response} =    Run Keyword If   '${enclave}' == '${EMPTY}'    Post credentials to auth    ${HOST_PROTOCOL}://${component}    ${HOST_BASE_DOMAIN}    ${creds}    ${boolean}
     ...    ELSE      Post credentials to auth    ${HOST_PROTOCOL}://${component}-${enclave}     ${HOST_BASE_DOMAIN}    ${creds}    ${boolean}
@@ -87,7 +66,7 @@ Secured component domain should be accessible by valid credentials
 Invoke and check test dags for valid status code
     [Arguments]   ${enclave}
     [Documentation]  Check test dags for valid status code
-    Connect to enclave Airflow                           ${enclave}
+    Connect to enclave Airflow    ${enclave}
     :FOR    ${dag}      IN      @{TEST_DAGS}
     \   ${ready} =            Is dag ready    ${dag}
     \   Should Be True 	      ${ready} == True    Dag ${dag} was not ready
@@ -108,9 +87,3 @@ Run airflow task and validate stderr
     \   ${date_time} =      Get Current Date  result_format='%Y-%m-%d %H:%M:%S'
     \   ${status} =         Trigger Airflow task    ${dag}  ${task}  ${date_time}
     \   Should Be Equal     ${status}   ${None}
-
-Set replicas num
-    [Arguments]   ${replicas_num}
-    :FOR  ${enclave}    IN    @{ENCLAVES}
-    \   Set deployment replicas   ${replicas_num}  airflow-${enclave}-worker  ${enclave}
-        Wait deployment replicas count   airflow-${enclave}-worker  namespace=${enclave}  expected_replicas_num=${replicas_num}

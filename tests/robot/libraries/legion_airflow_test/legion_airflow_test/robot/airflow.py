@@ -21,7 +21,7 @@ import logging
 import time
 import requests
 from requests.exceptions import RequestException
-from legion_test.robot.dex_client import get_session_cookies
+from legion_airflow_test.robot.dex_client import get_session_cookies
 
 
 class Airflow:

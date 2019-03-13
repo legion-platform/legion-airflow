@@ -18,8 +18,8 @@ Robot test library - flower
 """
 import requests
 from requests.exceptions import RequestException
-from legion_test.robot.dex_client import get_session_cookies
-from legion_test.utils import wait_until
+from legion_airflow_test.robot.dex_client import get_session_cookies
+from legion_airflow_test.utils import wait_until
 
 
 class Flower:

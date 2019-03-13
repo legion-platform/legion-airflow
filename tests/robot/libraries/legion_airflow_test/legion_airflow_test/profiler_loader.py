@@ -20,8 +20,8 @@ Variables loader (from profiles/{env.PROFILE}.yml and /{env.CREDENTIAL_SECRETS}.
 import os
 
 import yaml
-from legion_test.robot import dex_client
-from legion_test.robot.dex_client import init_session_id, init_session_id_from_data
+from legion_airflow_test.robot import dex_client
+from legion_airflow_test.robot.dex_client import init_session_id, init_session_id_from_data
 
 PROFILE_ENVIRON_KEY = 'PROFILE'
 PATH_TO_PROFILES_DIR = 'PATH_TO_PROFILES_DIR'
@@ -68,21 +68,14 @@ def get_variables(arg=None):
 
     variables = {
         'CLUSTER_NAMESPACE': data['namespace'],
-        'DEPLOYMENT': data['deployment'],
 
         'HOST_BASE_DOMAIN': data.get('test_base_domain', data['base_domain']),
         'USE_HTTPS_FOR_TESTS': data.get('use_https_for_tests', 'yes') == 'yes',
 
-        'JENKINS_JOBS': data['examples_to_test'],
-        'MODEL_ID': data['model_id_to_test'],
         'ENCLAVES': data.get('enclaves', []),
 
         'CLUSTER_NAME': data['cluster_name'],
-        'NEXUS_DOCKER_REPO': data['docker_repo'],
         'TEMP_DIRECTORY': data['tmp_dir'],
-        'FEEDBACK_BUCKET': '{}-{}-{}'.format(data['legion_data_bucket_prefix'],
-                                              data['env_name'],
-                                              data['enclaves'][0]),
     }
 
     variables['HOST_PROTOCOL'] = 'https' if variables['USE_HTTPS_FOR_TESTS'] else 'http'

@@ -187,7 +187,7 @@ pipeline {
                             sh '''
                             TERM="linux" pylint --exit-zero --output-format=parseable --reports=no legion_airflow/legion_airflow > legion-pylint.log
                             TERM="linux" pylint --exit-zero --output-format=parseable --reports=no legion_airflow/tests >> legion-pylint.log
-                            TERM="linux" pylint --exit-zero --output-format=parseable --reports=no  robot/libraries/legion_test/legion_test/ >> legion-pylint.log
+                            TERM="linux" pylint --exit-zero --output-format=parseable --reports=no  robot/libraries/legion_airflow_test/legion_airflow_test/ >> legion-pylint.log
                             '''
 
                             archiveArtifacts 'legion-pylint.log'
