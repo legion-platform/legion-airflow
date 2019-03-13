@@ -60,14 +60,14 @@ pipeline {
                 checkout scm
                 script {
                     sh 'echo RunningOn: $(curl http://checkip.amazonaws.com/)'
+
                     // Import legion-airflow components
                     legionAirflow = load "${env.sharedLibPath}"
 
                     // import Legion components
-                    dir ("${WORKSPACE}/legion") {
+                    dir("${WORKSPACE}/legion") {
                         checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version_tag}"]]], poll: false
-                        //git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
-                        legion = load "${env.legionSharedLibPath}"\
+                        legion = load "${env.legionSharedLibPath}"
                     }
 
                     //Generate build description

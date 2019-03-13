@@ -10,7 +10,7 @@ def deployAirflow() {
                         ansible-playbook deploy.yml \
                         ${ansibleVerbose} \
                         --vault-password-file=${vault} \
-                        --extra-vars "profile=${env.param_profile} \
+                        --extra-vars "param_env_name=${param_env_name} \
                         legion_airflow_version=${env.param_legion_airflow_version} \
                         helm_repo=${env.param_helm_repo} \
                         docker_repo=${env.param_docker_repo} \
@@ -36,7 +36,7 @@ def undeployAirflow() {
                         ansible-playbook undeploy.yml \
                         ${ansibleVerbose} \
                         --vault-password-file=${vault} \
-                        --extra-vars "profile=${env.param_profile} \
+                        --extra-vars "param_env_name=${param_env_name} \
                         legion_airflow_version=${env.param_legion_airflow_version}  \
                         helm_repo=${env.param_helm_repo} \
                         docker_repo=${env.param_docker_repo} \

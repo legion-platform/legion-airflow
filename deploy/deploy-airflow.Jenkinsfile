@@ -4,7 +4,7 @@ pipeline {
     environment {
         //Input parameters
         param_git_branch = "${params.GitBranch}"
-        param_env_name = "${params.EnvName}"
+        param_profile = "${params.Profile}"
         param_legion_airflow_version = "${params.LegionAirflowVersion}"
         param_legion_version = "${params.LegionVersion}"
         //Legion release tag to be used for common pipeline tasks and orchestration container
@@ -19,12 +19,15 @@ pipeline {
         param_helm_repo = "${params.HelmRepo}"
         param_debug_run = "${params.DebugRun}"
         //Job parameters
+
         sharedLibPath = "deploy/Pipeline.groovy"
-        legionSharedLibPath = "legion/deploy/legionPipeline.groovy"
+        legionSharedLibPath = "deploy/legionPipeline.groovy"
         cleanupContainerVersion = "latest"
         ansibleHome =  "/opt/legion/deploy/ansible"
         ansibleVerbose = '-v'
         helmLocalSrc = 'false'
+        //Alternative profiles path with legion cluster parameters
+        PROFILES_PATH = "${WORKSPACE}/legion/deploy/profiles"
     }
 
     stages {
@@ -33,14 +36,18 @@ pipeline {
                 cleanWs()
                 checkout scm
                 script {
+                    sh 'echo RunningOn: $(curl http://checkip.amazonaws.com/)'
+
+                    param_env_name = env.param_profile.split("\\.")[0]
+
                     // Import legion-airflow components
                     legionAirflow = load "${env.sharedLibPath}"
                     
                     // import Legion components
                     dir("${WORKSPACE}/legion") {
-                        git branch: "${env.param_legion_version}", poll: false, url: "${env.param_legion_repo}"
+                        checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version}"]]], poll: false 
+                        legion = load "${env.legionSharedLibPath}"
                     }
-                    legion = load "${env.legionSharedLibPath}"
                     
                     //Generate build description
                     legion.buildDescription()
@@ -88,20 +95,20 @@ pipeline {
             script {
                 dir("${WORKSPACE}/legion") {
                     // import Legion components
-                    git branch: "${env.param_legion_version}", poll: false, url: "${env.param_legion_repo}"
+                    checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version}"]]], poll: false
+                    legion = load "${env.legionSharedLibPath}"
+                    legion.notifyBuild(currentBuild.currentResult)
                 }
-                legion = load "${env.legionSharedLibPath}"
-                legion.notifyBuild(currentBuild.currentResult)
             }
         }
         cleanup {
             script {
                  dir("${WORKSPACE}/legion") {
                     // import Legion components
-                    git branch: "${env.param_legion_version}", poll: false, url: "${env.param_legion_repo}"
+                    checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version}"]]], poll: false
+                    legion = load "${env.legionSharedLibPath}"
+                    legion.cleanupClusterSg(param_legion_version ?: cleanupContainerVersion)
                 }
-                legion = load "${env.legionSharedLibPath}"
-                legion.cleanupClusterSg(param_legion_version ?: cleanupContainerVersion)
             }
             deleteDir()
         }
