@@ -1,6 +1,5 @@
 #!/bin/bash
-set -e
-vault=/tmp/vaultfile
+set -ex
 
 echo "Starting robot tests"
 cd tests/robot 
