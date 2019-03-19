@@ -21,4 +21,4 @@ aws s3 cp $CLUSTER_STATE_STORE/vault/$PROFILE $CLUSTER_NAME
 ansible-vault decrypt --vault-password-file=$vault --output $CREDENTIAL_SECRETS $CLUSTER_NAME
 
 # Run Robot tests
-pabot --verbose --processes 6 --variable PATH_TO_PROFILES_DIR:$PATH_TO_PROFILES_DIR --listener legion_airflow_test.process_reporter --outputdir . tests/airflow.robot
+pabot --verbose --processes 6 --variable PATH_TO_PROFILES_DIR:$PATH_TO_PROFILES_DIR --listener legion_airflow_test.process_reporter --outputdir . tests/airflow.robot || true

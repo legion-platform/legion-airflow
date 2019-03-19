@@ -13,7 +13,6 @@ pipeline {
         param_enclave_name = "${params.Enclave}"
         param_deploy_airflow = "${params.DeployAirflow}"
         param_use_regression_tests = "${params.UseRegressionTests}"
-        param_tests_tags = "${params.TestsTags}"
         param_legion_repo = "${params.LegionRepo}"
         param_docker_repo = "${params.DockerRepo}"
         param_helm_repo = "${params.HelmRepo}"
@@ -84,7 +83,7 @@ pipeline {
             steps {
                 script {
                     legion.ansibleDebugRunCheck(env.param_debug_run)
-                    legionAirflow.runRobotTests(env.param_tests_tags ?: "airflow")
+                    legionAirflow.runRobotTests()
                 }
             }
         }

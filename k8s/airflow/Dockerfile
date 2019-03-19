@@ -57,7 +57,7 @@ RUN pip3 install --disable-pip-version-check --upgrade pip==9.0.3 pipenv==2018.1
 RUN pip3 install Jinja2==2.10
 
 # Install legion-airflow from sources
-RUN cd ${AIRFLOW_HOME} && python3 setup.py develop
+RUN cd ${AIRFLOW_HOME} && python3 setup.py install
 
 USER airflow
 WORKDIR ${AIRFLOW_HOME}

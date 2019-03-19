@@ -21,7 +21,7 @@ import yaml
 from airflow.hooks.base_hook import BaseHook
 from airflow.models import Connection
 from airflow.utils.log.logging_mixin import LoggingMixin
-from legion.k8s import K8SSecretStorage
+from legion.k8s import K8SSecretStorage    # pylint: disable=W0611
 
 
 class K8SBaseHook(BaseHook):

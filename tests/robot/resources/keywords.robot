@@ -36,12 +36,8 @@ Check if component domain has been secured
 Secured component domain should not be accessible by invalid credentials
     [Arguments]     ${component}    ${enclave}
     [Documentation]  Check that a secured legion component does not provide access by invalid credentials
-    ${airflow} =     Run Keyword If   '${component}' == 'airflow'    Set Variable    True
-    ...    ELSE      Set Variable    False
-    ${boolean} =     Convert To Boolean    ${airflow}
     &{creds} =       Create Dictionary 	login=admin   password=admin
-    &{response} =    Run Keyword If   '${enclave}' == '${EMPTY}'    Post credentials to auth    ${HOST_PROTOCOL}://${component}    ${HOST_BASE_DOMAIN}    ${creds}    ${boolean}
-    ...    ELSE      Post credentials to auth    ${HOST_PROTOCOL}://${component}-${enclave}     ${HOST_BASE_DOMAIN}    ${creds}    ${boolean}
+    &{response} =    Post credentials to auth    ${HOST_PROTOCOL}://${component}-${enclave}     ${HOST_BASE_DOMAIN}    ${creds}
     Log              Bad auth page for ${component} is ${response}
     Dictionary Should Contain Item    ${response}    response_code    200
     ${auth_page} =   Get From Dictionary   ${response}    response_text
@@ -51,12 +47,8 @@ Secured component domain should not be accessible by invalid credentials
 Secured component domain should be accessible by valid credentials
     [Arguments]     ${component}    ${enclave}
     [Documentation]  Check that a secured legion component does not provide access by invalid credentials
-    ${airflow} =     Run Keyword If   '${component}' == 'airflow'    Set Variable    True
-    ...    ELSE      Set Variable    False
-    ${boolean} =     Convert To Boolean    ${airflow}
     &{creds} =       Create Dictionary    login=${STATIC_USER_EMAIL}    password=${STATIC_USER_PASS}
-    &{response} =    Run Keyword If   '${enclave}' == '${EMPTY}'    Post credentials to auth    ${HOST_PROTOCOL}://${component}    ${HOST_BASE_DOMAIN}    ${creds}    ${boolean}
-    ...    ELSE      Post credentials to auth    ${HOST_PROTOCOL}://${component}-${enclave}     ${HOST_BASE_DOMAIN}    ${creds}    ${boolean}
+    &{response} =    Post credentials to auth    ${HOST_PROTOCOL}://${component}-${enclave}     ${HOST_BASE_DOMAIN}    ${creds}
     Log              Bad auth page for ${component} is ${response}
     Dictionary Should Contain Item    ${response}    response_code    200
     ${auth_page} =   Get From Dictionary   ${response}    response_text

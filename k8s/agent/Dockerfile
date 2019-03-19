@@ -27,8 +27,8 @@ RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8 && \
 
 # Install Kops
 ENV KOPS_VERSION=1.10.0
-ADD https://github.com/kubernetes/kops/releases/download/${KOPS_VERSION}/kops-linux-amd64 /usr/local/bin/kops
-RUN chmod a+x /usr/local/bin/kops
+RUN wget https://github.com/kubernetes/kops/releases/download/${KOPS_VERSION}/kops-linux-amd64 -o /usr/local/bin/kops && \
+    chmod a+x /usr/local/bin/kops
 
 # Install Helm
 ENV HELM_VERSION=v2.10.0
@@ -48,5 +48,9 @@ ENV LC_ALL="en_US.UTF-8" \
 COPY legion_airflow/Pipfile legion_airflow/Pipfile.lock /tmp/
 RUN pip3 install --disable-pip-version-check --upgrade pip==9.0.3 pipenv==2018.10.13 && \
     cd /tmp/ && pipenv install --system --dev
+
+# Install legion_airflow_test package
+COPY tests/robot/libraries/legion_airflow_test/ /tmp/
+RUN cd /tmp/ && python3 setup.py install && rm -rf /tmp/legion_airflow_test
 
 WORKDIR /tmp

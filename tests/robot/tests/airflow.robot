@@ -26,10 +26,10 @@ Check if Flower enclave domain does not auth with invalid creds
     [Template]    Secured component domain should not be accessible by invalid credentials
     component=flower    enclave=${MODEL_TEST_ENCLAVE}
 
-#Check if Airflow enclave domain can auth with valid creds
-#    [Tags]  airflow
-#    [Template]    Secured component domain should be accessible by valid credentials
-#    component=airflow    enclave=${MODEL_TEST_ENCLAVE}
+Check if Airflow enclave domain can auth with valid creds
+    [Tags]  airflow
+    [Template]    Secured component domain should be accessible by valid credentials
+    component=airflow    enclave=${MODEL_TEST_ENCLAVE}
 
 Check if Flower enclave domain can auth with valid creds
     [Tags]  airflow

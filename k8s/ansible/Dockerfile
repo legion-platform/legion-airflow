@@ -7,7 +7,7 @@ WORKDIR /opt/legion/deploy/
 # install system utilities
 RUN apt-get update && apt-get install -y \
     python-pip apt-transport-https bash curl tar openssh-client \
-    sshpass git ca-certificates python-pip apt-utils locales && \
+    sshpass git ca-certificates python-pip apt-utils wget locales && \
     apt-get clean -y && apt-get autoclean -y
 
 # setup locale
@@ -34,13 +34,13 @@ RUN mkdir -p /etc/ansible/ && /bin/echo -e "[local]\nlocalhost ansible_connectio
 
 # Install Kops
 ENV KOPS_VERSION=1.10.0
-ADD https://github.com/kubernetes/kops/releases/download/${KOPS_VERSION}/kops-linux-amd64 /usr/local/bin/kops
-RUN chmod a+x /usr/local/bin/kops
+RUN wget https://github.com/kubernetes/kops/releases/download/${KOPS_VERSION}/kops-linux-amd64 -o /usr/local/bin/kops && \
+    chmod a+x /usr/local/bin/kops
 
 # Install kubectl
 ENV KUBECTL_VERSION=v1.10.6
-ADD https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl /usr/local/bin/kubectl
-RUN chmod a+x /usr/local/bin/kubectl
+RUN wget https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl && \
+    chmod a+x /usr/local/bin/kubectl
 
 # Install Helm
 ENV HELM_VERSION=v2.10.0
