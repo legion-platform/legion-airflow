@@ -2,6 +2,7 @@
 # Cluster specific data
 vendor: legion
 route53_zone: epm.kharlamov.biz
+aws_region: us-east-2
 env_name: "{{ param_env_name }}"
 base_domain: "{{ env_name }}.{{ route53_zone }}"
 cluster_name: "{{ env_name }}.{{ route53_zone }}"
@@ -32,7 +33,7 @@ airflow_db_schema: "{{ enclave }}"
 airflow_db_enclave_user: "{{ enclave }}"
 
 # S3 storage 
-legion_data_bucket_prefix: epm-legion-data
+legion_data_bucket_prefix: legion-data
 legion_data_s3_bucket: "{{ legion_data_bucket_prefix }}-{{ env_name }}-{{ enclave }}"
 airflow_s3_logs_path: 'airflow-logs/'
 airflow_s3_logs_url: "s3://{{ legion_data_s3_bucket }}/{{ airflow_s3_logs_path }}"
