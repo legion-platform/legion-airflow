@@ -4,14 +4,13 @@ ENV DEBIAN_FRONTEND="noninteractive"
 
 RUN apt-get update -y && \
     apt-get upgrade -y && \
-    apt-get install -y software-properties-common build-essential libssl-dev libffi-dev zlib1g-dev libjpeg-dev git  \
-                        jq xvfb python3 python3-dev python3-pip python3-setuptools \
-                        libpython3-dev wget locales apt-transport-https file wget curl git libtiff5-dev libjpeg8-dev \
+    apt-get install -y software-properties-common build-essential git  \
+                        jq python3 python3-dev python3-pip python3-setuptools \
+                        libpython3-dev locales apt-transport-https file wget curl libtiff5-dev libjpeg8-dev \
                         zlib1g-dev tcl8.6-dev tk8.6-dev python-tk python3-tk libfreetype6-dev liblcms2-dev \
                         libwebp-dev libharfbuzz-dev libfribidi-dev tcl8.6-dev tk8.6-dev python-tk python3-tk libpcre3 \
-                        libpcre3-dev locales cron libkrb5-dev libsasl2-dev libssl-dev libffi-dev libblas-dev \
-                        liblapack-dev sudo iputils-ping openssh-client libpq-dev sshpass redis-tools netcat \
-                        libmysqlclient-dev && \
+                        libpcre3-dev locales cron libkrb5-dev libsasl2-dev libssl-dev libffi-dev libblas-dev libmysqlclient-dev \
+                        sudo iputils-ping openssh-client libpq-dev sshpass && \
     apt-get clean && apt-get autoclean && \
     rm -rf \
         /var/lib/apt/lists/* \
@@ -38,8 +37,7 @@ RUN curl -fsSLO https://kubernetes-helm.storage.googleapis.com/helm-${HELM_VERSI
     mv /tmp/helm/linux-amd64/helm /usr/local/bin/helm && rm -rf /tmp/helm
 
 # Install additional tools for build purposes
-RUN pip3 install Sphinx==1.8.0 sphinx_rtd_theme==0.4.1 sphinx-autobuild==0.7.1 \
-    recommonmark==0.4.0 ansible==2.7.2 awscli==1.16.19 yq==2.7.2
+RUN pip3 install ansible==2.7.2 awscli==1.16.19 yq==2.7.2
 
 # Update locale for pipenv compatibility
 ENV LC_ALL="en_US.UTF-8" \
@@ -51,7 +49,7 @@ RUN pip3 install --disable-pip-version-check --upgrade pip==9.0.3 pipenv==2018.1
     cd /tmp/ && pipenv install --system --dev
 
 # Install legion_airflow_test package
-COPY tests/robot/libraries/legion_airflow_test/ /tmp/
-RUN cd /tmp/ && python3 setup.py install && rm -rf /tmp/legion_airflow_test
+COPY tests/robot/libraries/legion_airflow_test/ /opt
+RUN cd /opt/ && python3 setup.py install && rm -rf /opt/legion_airflow_test
 
-WORKDIR /tmp
+WORKDIR /opt
