@@ -176,8 +176,8 @@ pipeline {
                 }
 
                 result = build job: env.param_terminate_cluster_job_name, propagate: true, wait: true, parameters: [
-                        [$class: 'GitParameterValue', name: 'GitBranch', value: env.mergeBranch],
-                       string(name: 'LegionVersion', value: env.param_legion_version_tag),
+                        [$class: 'GitParameterValue', name: 'GitBranch', value: env.param_legion_version_tag],
+                        string(name: 'LegionVersion', value: env.param_legion_version_tag),
                         string(name: 'Profile', value: env.param_profile)]
 
                 // legion.notifyBuild(currentBuild.currentResult)
