@@ -31,27 +31,27 @@ pipeline {
                 script {
 
                     print('Set interim merge branch')
-                    // sh """
-                    // echo ${env.mergeBranch}
-                    // if [ `git branch | grep ${env.mergeBranch}` ]; then
-                    //     echo 'Removing existing git tag'
-                    //     git branch -D ${env.mergeBranch}
-                    //     git push origin --delete ${env.mergeBranch}
-                    // fi
-                    // git branch ${env.mergeBranch}
-                    // git push origin ${env.mergeBranch}
-                    // """ 
-                    
+                    sh """
+                    echo ${env.mergeBranch}
+                    if [ `git branch | grep ${env.mergeBranch}` ]; then
+                        echo 'Removing existing git tag'
+                        git branch -D ${env.mergeBranch}
+                        git push origin --delete ${env.mergeBranch}
+                    fi
+                    git branch ${env.mergeBranch}
+                    git push origin ${env.mergeBranch}
+                    """ 
+                
                     // Import legion-airflow components
-                    // legionAirflow = load "${env.sharedLibPath}"
-                    
-                    // import Legion components
-                    // dir("${WORKSPACE}/legion") {
-                    //     checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version_tag}"]]], poll: false 
-                    //     legion = load "${env.legionSharedLibPath}"
-                    // }
-// 
-                    // legion.buildDescription()
+                    legionAirflow = load "${env.sharedLibPath}"
+                
+                    // Import Legion components
+                    dir("${WORKSPACE}/legion") {
+                        checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version_tag}"]]], poll: false 
+                        legion = load "${env.legionSharedLibPath}"
+                    }
+
+                    legion.buildDescription()
                 }
             }
         }
@@ -61,7 +61,7 @@ pipeline {
                script {
                    print "starting airflow build"
                    result = build job: env.param_build_legion_airflow_job_name, propagate: true, wait: true, parameters: [
-                        [$class: 'GitParameterValue', name: 'GitBranch', value: env.param_git_branch],
+                        [$class: 'GitParameterValue', name: 'GitBranch', value: env.mergeBranch],
                         booleanParam(name: 'EnableDockerCache', value: false),
                         string(name: 'LegionVersionTag', value: env.param_legion_version_tag)]
 
@@ -139,7 +139,7 @@ pipeline {
            steps {
                script {
                    result = build job: env.param_deploy_legion_airflow_job_name, propagate: true, wait: true, parameters: [
-                           [$class: 'GitParameterValue', name: 'GitBranch', value: env.param_git_branch],
+                           [$class: 'GitParameterValue', name: 'GitBranch', value: env.mergeBranch],
                            string(name: 'Profile', value: env.param_profile),
                            string(name: 'LegionAirflowVersion', value: legionAirflowVersion),
                            string(name: 'LegionVersion', value: env.param_legion_version_tag),
@@ -155,7 +155,7 @@ pipeline {
            steps {
                script {
                    result = build job: env.param_undeploy_legioin_airflow_job_name, propagate: true, wait: true, parameters: [
-                           [$class: 'GitParameterValue', name: 'GitBranch', value: env.param_git_branch],
+                           [$class: 'GitParameterValue', name: 'GitBranch', value: env.mergeBranch],
                            string(name: 'Profile', value: env.param_profile),
                            string(name: 'LegionAirflowVersion', value: legionAirflowVersion),
                            string(name: 'LegionVersion', value: env.param_legion_version_tag),
@@ -175,23 +175,23 @@ pipeline {
                     legion = load "${env.legionSharedLibPath}"
                 }
 
-                //result = build job: env.param_terminate_cluster_job_name, propagate: true, wait: true, parameters: [
-                //        [$class: 'GitParameterValue', name: 'GitBranch', value: env.param_legion_version_tag],
-                //        string(name: 'LegionVersion', value: env.param_legion_version_tag),
-                //        string(name: 'Profile', value: env.param_profile)]
+                result = build job: env.param_terminate_cluster_job_name, propagate: true, wait: true, parameters: [
+                        [$class: 'GitParameterValue', name: 'GitBranch', value: env.param_legion_version_tag],
+                        string(name: 'LegionVersion', value: env.param_legion_version_tag),
+                        string(name: 'Profile', value: env.param_profile)]
 
-                //// legion.notifyBuild(currentBuild.currentResult)
+                legion.notifyBuild(currentBuild.currentResult)
             }
         }
         cleanup {
             script {
                 print('Remove interim merge branch')
-                // sh """
-                //     if [ `git branch | grep ${env.mergeBranch}` ]; then
-                //         git branch -D ${env.mergeBranch}
-                //         git push origin --delete ${env.mergeBranch}
-                //     fi
-                // """
+                sh """
+                    if [ `git branch | grep ${env.mergeBranch}` ]; then
+                        git branch -D ${env.mergeBranch}
+                        git push origin --delete ${env.mergeBranch}
+                    fi
+                """
             }
             deleteDir()
         }
