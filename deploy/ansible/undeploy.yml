@@ -41,7 +41,7 @@
         state: absent
 
   roles:
-    - common
+    - commons
 
   tasks:
     - include_role:

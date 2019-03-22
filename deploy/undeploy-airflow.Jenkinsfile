@@ -50,6 +50,7 @@ pipeline {
                     //Generate build description
                     legion.buildDescription()
                 }
+            }
         }
 
         /// Whitelist Jenkins Agent IP on cluster
@@ -80,7 +81,6 @@ pipeline {
                     legion = load "${env.legionSharedLibPath}"
                     legion.notifyBuild(currentBuild.currentResult)
                 }
-                
             }
         }
         cleanup {
