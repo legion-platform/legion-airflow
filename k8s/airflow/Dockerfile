@@ -6,10 +6,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
         python3 g++ apt-utils build-essential python3-dev python3-pip python3-setuptools libpython3-dev \
-        apt-transport-https file wget curl git libtiff5-dev libjpeg8-dev zlib1g-dev tcl8.6-dev tk8.6-dev python-tk \
-        python3-tk libfreetype6-dev liblcms2-dev libwebp-dev libharfbuzz-dev libfribidi-dev tcl8.6-dev tk8.6-dev \
-        python-tk python3-tk libpcre3 libpcre3-dev locales cron libkrb5-dev libsasl2-dev libssl-dev libffi-dev \
-        libblas-dev liblapack-dev sudo iputils-ping openssh-client libpq-dev sshpass redis-tools netcat \
+        apt-transport-https file wget curl git locales sudo iputils-ping openssh-client libpq-dev sshpass redis-tools netcat \
         libmysqlclient-dev && \
     apt-get clean -y && apt-get autoclean -y && \
     rm -rf \

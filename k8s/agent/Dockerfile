@@ -6,11 +6,8 @@ RUN apt-get update -y && \
     apt-get upgrade -y && \
     apt-get install -y software-properties-common build-essential git  \
                         jq python3 python3-dev python3-pip python3-setuptools \
-                        libpython3-dev locales apt-transport-https file wget curl libtiff5-dev libjpeg8-dev \
-                        zlib1g-dev tcl8.6-dev tk8.6-dev python-tk python3-tk libfreetype6-dev liblcms2-dev \
-                        libwebp-dev libharfbuzz-dev libfribidi-dev tcl8.6-dev tk8.6-dev python-tk python3-tk libpcre3 \
-                        libpcre3-dev locales cron libkrb5-dev libsasl2-dev libssl-dev libffi-dev libblas-dev libmysqlclient-dev \
-                        sudo iputils-ping openssh-client libpq-dev sshpass && \
+                        libpython3-dev locales apt-transport-https file wget curl \
+                        sudo iputils-ping openssh-client libpq-dev libmysqlclient-dev sshpass && \
     apt-get clean && apt-get autoclean && \
     rm -rf \
         /var/lib/apt/lists/* \
