@@ -133,7 +133,6 @@ pipeline {
                         if (env.param_push_git_tag.toBoolean()){
                             print('Set Release tag')
                             sh """
-                            echo ${env.param_push_git_tag}
                             if [ `git tag |grep -x ${env.param_release_version}` ]; then
                                 if [ ${env.param_force_tag_push} = "true" ]; then
                                     echo 'Removing existing git tag'
@@ -170,10 +169,7 @@ pipeline {
         stage('Build Agent Docker Image') {
             steps {
                 script {
-                    legion.pullDockerCache(['ubuntu:18.04'],'airflow-docker-agent')
-                    sh """
-                    docker build ${Globals.dockerCacheArg} --cache-from=${env.param_docker_registry}/airflow-docker-agent:${env.param_docker_cache_source} -t legion/airflow-docker-agent:${Globals.buildVersion} -f  k8s/agent/Dockerfile .
-                    """
+                    legion.buildLegionImage('airflow-docker-agent', '.', 'k8s/agent/Dockerfile')
                     legion.uploadDockerImage('airflow-docker-agent')
                 }
             }
@@ -208,20 +204,14 @@ pipeline {
         stage("Build Ansible Docker image") {
             steps {
                 script {
-                    legion.pullDockerCache(['ubuntu:18.04'], 'k8s-airflow-ansible')
-                    sh """
-                    docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow-ansible:${env.param_docker_cache_source} -t legion/k8s-airflow-ansible:${Globals.buildVersion} ${Globals.dockerLabels}  -f k8s/ansible/Dockerfile .
-                    """
+                    legion.buildLegionImage('k8s-airflow-ansible', '.', 'k8s/ansible/Dockerfile')
                 }
             }
         }
         stage("Build Airflow Docker image") {
             steps {
                 script {
-                    legion.pullDockerCache(['ubuntu:18.04'], 'k8s-ansible')
-                    sh """
-                    docker build ${Globals.dockerCacheArg} --cache-from=ubuntu:18.04 --cache-from=${env.param_docker_registry}/k8s-airflow:${env.param_docker_cache_source} --build-arg version="${Globals.buildVersion}" --build-arg pip_extra_index_params="--extra-index-url ${env.param_pypi_repository}" --build-arg pip_legion_version_string="==${env.param_legion_version_tag}" -t legion/k8s-airflow:${Globals.buildVersion} ${Globals.dockerLabels} -f k8s/airflow/Dockerfile .
-                    """
+                    legion.buildLegionImage('k8s-airflow', '.', 'k8s/airflow/Dockerfile')
                 }
             }
         }
@@ -340,7 +330,6 @@ pipeline {
         always {
             script {
                 dir ("${WORKSPACE}/legion") {
-                        // git branch: "${env.param_legion_version_tag}", poll: false, url: "${env.param_legion_repo}"
                         checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version_tag}"]]], poll: false
                         legion = load "${env.legionSharedLibPath}"
                     }
