@@ -22,13 +22,13 @@
     - name: Download secrets from S3
       aws_s3:
         bucket: "{{ secrets_bucket }}"
-        object: "vault/{{ profile }}"
-        dest: "{{ secrets_file }}"
+        object: "vault/airflow_secrets.yaml"
+        dest: "airflow_secrets.yaml"
         mode: get
 
     - name: Include vars
       include_vars:
-        file: "{{ secrets_file }}"
+        file: "airflow_secrets.yaml"
 
     - name: If enclave_name var will be passed than deploy airflow to this specific enclave
       set_fact: enclaves=[{{ enclave_name }}]
@@ -37,7 +37,7 @@
   post_tasks:
     - name: Delete secrets file
       file:
-        name: "{{ secrets_file }}"
+        name: "airflow_secrets.yaml"
         state: absent
 
   roles:

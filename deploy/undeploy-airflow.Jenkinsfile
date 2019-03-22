@@ -62,7 +62,7 @@ pipeline {
             }
         }
 
-        stage('Deploy Ariflow') {
+        stage('Uneploy Ariflow') {
             steps {
                 script {
                     legion.ansibleDebugRunCheck(env.param_debug_run)

@@ -48,6 +48,7 @@ pipeline {
             param_local_pypi_distribution_target_name = "${params.LocalPyPiDistributionTargetName}"
             param_docker_registry = "${params.DockerRegistry}"
             param_docker_hub_registry = "${params.DockerHubRegistry}"
+            param_git_deploy_key = "${params.GitDeployKey}"
             ///Job parameters
             sharedLibPath = "deploy/Pipeline.groovy"
             legionSharedLibPath = "deploy/legionPipeline.groovy"
@@ -132,20 +133,22 @@ pipeline {
                     if (env.param_stable_release) {
                         if (env.param_push_git_tag.toBoolean()){
                             print('Set Release tag')
-                            sh """
-                            if [ `git tag |grep -x ${env.param_release_version}` ]; then
-                                if [ ${env.param_force_tag_push} = "true" ]; then
-                                    echo 'Removing existing git tag'
-                                    git tag -d ${env.param_release_version}
-                                    git push origin :refs/tags/${env.param_release_version}
-                                else
-                                    echo 'Specified tag already exists!'
-                                    exit 1
+                            sshagent(["${env.param_git_deploy_key}"]) {
+                                sh """
+                                if [ `git tag |grep -x ${env.param_release_version}` ]; then
+                                    if [ ${env.param_force_tag_push} = "true" ]; then
+                                        echo 'Removing existing git tag'
+                                        git tag -d ${env.param_release_version}
+                                        git push origin :refs/tags/${env.param_release_version}
+                                    else
+                                        echo 'Specified tag already exists!'
+                                        exit 1
+                                    fi
                                 fi
-                            fi
-                            git tag ${env.param_release_version}
-                            git push origin ${env.param_release_version}
-                            """
+                                git tag ${env.param_release_version}
+                                git push origin ${env.param_release_version}
+                                """
+                            }
                         } else {
                             print("Skipping release git tag push")
                         }
@@ -246,18 +249,21 @@ pipeline {
                             if (env.param_stable_release) {
                                 //checkout repo with existing charts  (needed for generating correct repo index file )
                                 git branch: "${env.param_helm_repo_git_branch}", poll: false, url: "${env.param_helm_repo_git_url}"
-                                sh"""
+                                sshagent(["${env.param_git_deploy_key}"]) {
+                                    sh"""
                                     mkdir -p ${WORKSPACE}/legion-helm-charts/airflow
                                     cp ${WORKSPACE}/deploy/helms/airflow-${Globals.buildVersion}.tgz ${WORKSPACE}/legion-helm-charts/airflow/
                                     git add airflow/airflow-${Globals.buildVersion}.tgz
-                                """
-                                sh """
-                                helm repo index ./
-                                git add index.yaml
-                                git status
-                                git commit -m "Release ${Globals.buildVersion}"
-                                git push origin ${env.param_helm_repo_git_branch}
-                                """
+                                    """
+                                
+                                    sh """
+                                    helm repo index ./
+                                    git add index.yaml
+                                    git status
+                                    git commit -m "Release ${Globals.buildVersion}"
+                                    git push origin ${env.param_helm_repo_git_branch}
+                                    """
+                                }
                             }
                         }
                     }
@@ -292,12 +298,14 @@ pipeline {
                             if (env.param_update_version_string.toBoolean()){
                                 print('Update Legion package version string')
                                 if (env.param_next_version){
-                                    sh """
-                                    git reset --hard
-                                    git checkout develop
-                                    sed -i -E "s/__version__.*/__version__ = \'${nextVersion}\'/g" legion_airflow/version.py
-                                    git commit -a -m "Bump Legion version to ${nextVersion}" && git push origin develop
-                                    """
+                                    sshagent(["${env.param_git_deploy_key}"]) {
+                                        sh """
+                                        git reset --hard
+                                        git checkout develop
+                                        sed -i -E "s/__version__.*/__version__ = \'${nextVersion}\'/g" legion_airflow/version.py
+                                        git commit -a -m "Bump Legion version to ${nextVersion}" && git push origin develop
+                                        """
+                                    }
                                 } else {
                                     throw new Exception("next_version must be specified with update_version_string parameter")
                                 }
@@ -309,13 +317,15 @@ pipeline {
 
                         stage('Update Master branch'){
                             if (env.param_update_master.toBoolean()){
-                                sh """
-                                git reset --hard
-                                git checkout develop
-                                git checkout master && git pull -r origin master
-                                git pull -r origin develop
-                                git push origin master
-                                """
+                                sshagent(["${env.param_git_deploy_key}"]) {
+                                    sh """
+                                    git reset --hard
+                                    git checkout develop
+                                    git checkout master && git pull -r origin master
+                                    git pull -r origin develop
+                                    git push origin master
+                                    """
+                                }
                             }
                             else {
                                 print("Skipping Master branch update")

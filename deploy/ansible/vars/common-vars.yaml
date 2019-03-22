@@ -10,7 +10,6 @@ profile: "{{ env_name }}.{{ route53_zone }}"
 state_store: s3://legion-cluster
 namespace: "{{ enclave }}"
 secrets_bucket: "legion-cluster"
-aws_region: us-east-2
 vpc_id: vpc-5729c13e
 cluster_zones:
   - zone_name: us-east-2a
@@ -26,8 +25,6 @@ enclaves:
 airflow_rds_engine: "postgres"
 airflow_rds_shape: "db.t2.medium"
 airflow_rds_size: "50"
-airflow_rds_engine_version: "10.4"
-airflow_rds_engine: "postgres"
 airflow_rds_engine_version: "10.4"
 airflow_db_schema: "{{ enclave }}"
 airflow_db_enclave_user: "{{ enclave }}"
