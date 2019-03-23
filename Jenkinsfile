@@ -166,6 +166,17 @@ pipeline {
                  passwordVariable: 'PASSWORD']]) {
                     sh "docker login -u ${USERNAME} -p ${PASSWORD} ${env.param_docker_registry}"
                 }
+                script {
+                    if (env.param_stable_release) {
+                        withCredentials([[
+                        $class: 'UsernamePasswordMultiBinding',
+                        credentialsId: 'dockerhub',
+                        usernameVariable: 'USERNAME',
+                        passwordVariable: 'PASSWORD']]) {
+                            sh "docker login -u ${USERNAME} -p ${PASSWORD}"
+                        }
+                    }
+                }
             }
         }
 
@@ -221,7 +232,7 @@ pipeline {
         stage('Package and upload helm charts'){
             steps {
                 script {
-                    docker.image("legion/airflow-docker-agent:${Globals.buildVersion}").inside("-v /var/run/docker.sock:/var/run/docker.sock") {
+                    docker.image("legion/airflow-docker-agent:${Globals.buildVersion}").inside("-v /var/run/docker.sock:/var/run/docker.sock -u root") {
                         dir ("${WORKSPACE}/deploy/helms") {
                             sh"""
                                 export HELM_HOME="\$(pwd)"
@@ -245,27 +256,40 @@ pipeline {
                                 }
                             }
                         }
-                        dir ("${WORKSPACE}/legion-helm-charts") {
-                            if (env.param_stable_release) {
-                                //checkout repo with existing charts  (needed for generating correct repo index file )
-                                git branch: "${env.param_helm_repo_git_branch}", poll: false, url: "${env.param_helm_repo_git_url}"
-                                sshagent(["${env.param_git_deploy_key}"]) {
-                                    sh"""
-                                    mkdir -p ${WORKSPACE}/legion-helm-charts/airflow
-                                    cp ${WORKSPACE}/deploy/helms/airflow-${Globals.buildVersion}.tgz ${WORKSPACE}/legion-helm-charts/airflow/
-                                    git add airflow/airflow-${Globals.buildVersion}.tgz
-                                    """
-                                
-                                    sh """
-                                    helm repo index ./
-                                    git add index.yaml
-                                    git status
-                                    git commit -m "Release ${Globals.buildVersion}"
-                                    git push origin ${env.param_helm_repo_git_branch}
-                                    """
-                                }
+
+                        if (env.param_stable_release) {
+                            //checkout repo with existing charts  (needed for generating correct repo index file )
+                            sshagent(["${env.param_git_deploy_key}"]) {
+                                sh """
+                                # Checkout helm charts repo
+
+                                mkdir ~/.ssh || true
+                                ssh-keyscan github.com >> ~/.ssh/known_hosts
+                                git clone ${env.param_helm_repo_git_url} && cd ${WORKSPACE}/legion-helm-charts
+                                git checkout ${env.param_helm_repo_git_branch}
+
+                                # Move packed charts to helm repo directory
+
+                                mv ${WORKSPACE}/deploy/helms/airflow-${Globals.buildVersion}.tgz ${WORKSPACE}/legion-helm-charts/airflow/
+                                git add airflow/airflow-${Globals.buildVersion}.tgz
+
+                                # Push charts to the repo
+
+                                helm repo index ./
+                                git add index.yaml
+                                git status
+                                git -c user.name='Jenkins CI' -c user.email='jenkins@legion.ci' commit -m "Release ${Globals.buildVersion}"
+                                git push origin ${env.param_helm_repo_git_branch}
+                                """
+
                             }
                         }
+                        
+                        // Cleanup directory
+                        sh """
+                        rm -rf ${WORKSPACE}/legion-helm-charts
+                        rm -rf ${WORKSPACE}/deploy/helms
+                        """
                     }
                 }
             }
