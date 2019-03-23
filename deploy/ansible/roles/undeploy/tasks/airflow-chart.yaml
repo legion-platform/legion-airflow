@@ -1,7 +1,11 @@
 ---
 
-- name: Remove airflow chart
-  shell: helm --kube-context {{ cluster_name }} delete --purge airflow-{{ enclave }}
+  - name: Get legion chart status
+  shell: helm --kube-context {{ cluster_name }} ls --all airflow-{{ enclave }}
+  register: chart_status
+
+- include: helm --kube-context {{ cluster_name }} delete --purge airflow-{{ enclave }}
+  when: chart_status.stdout_lines|length > 1
 
 - name: WORKAROUND delete pods in phase terminating
   shell: kubectl --context {{ cluster_name }} --namespace {{ enclave }}  delete --grace-period=0 --force po $(kubectl --context {{ cluster_name }} --namespace {{ enclave }} get po -o wide | grep Terminating | awk '{ print $1 }') || true
