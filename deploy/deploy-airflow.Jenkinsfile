@@ -106,6 +106,8 @@ pipeline {
                     // import Legion components
                     checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version}"]]], poll: false
                     legion = load "${env.legionSharedLibPath}"
+                    // reset ansible home to defaults
+                    ansibleHome = env.ansibleHome
                     legion.cleanupClusterSg(param_legion_version ?: cleanupContainerVersion)
                 }
             }
