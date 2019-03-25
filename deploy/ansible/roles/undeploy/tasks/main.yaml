@@ -12,7 +12,7 @@
   debug:
     var: iam_roles
 
-- include_tasks: iam-role.yml
+- include_tasks: iam-role.yaml
   loop: "{{ iam_roles.stdout_lines }}"
   loop_control:
     loop_var: iam_role
