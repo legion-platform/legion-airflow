@@ -18,7 +18,7 @@ RUN apt-get update -y && \
         /usr/share/doc-base
 
 # Set locale
-COPY k8s/agent/default_locale /etc/default/locale
+COPY containers/agent/default_locale /etc/default/locale
 RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8 && \
     chmod 0755 /etc/default/locale && \
     useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow
@@ -42,7 +42,7 @@ RUN pip3 install $pip_extra_index_params legion$pip_legion_version_string
 
 # Copy legion-airflow soures and set permissions
 COPY legion_airflow/ ${AIRFLOW_HOME}/
-COPY k8s/airflow/create_secrets.py k8s/airflow/init.sh ${AIRFLOW_HOME}/
+COPY containers/airflow/create_secrets.py containers/airflow/init.sh ${AIRFLOW_HOME}/
 RUN chown -R airflow: ${AIRFLOW_HOME} && chmod -R 775 ${AIRFLOW_HOME} && \
     chmod a+x ${AIRFLOW_HOME}/init.sh
 

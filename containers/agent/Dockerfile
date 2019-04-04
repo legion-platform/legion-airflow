@@ -17,7 +17,7 @@ RUN apt-get update -y && \
         /usr/share/doc \
         /usr/share/doc-base
 
-COPY k8s/agent/default_locale /etc/default/locale
+COPY containers/agent/default_locale /etc/default/locale
 RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8 && \
     chmod 0755 /etc/default/locale
 
