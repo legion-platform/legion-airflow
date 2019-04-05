@@ -9,7 +9,7 @@ cd tests/robot
 # Set required variables
 export PROFILE=$1
 export LEGION_VERSION=$2
-export PATH_TO_PROFILES_DIR="../../legion/deploy/profiles"
+export PATH_TO_PROFILES_DIR="../../legion/profiles"
 export PATH_TO_PROFILE_FILE="$PATH_TO_PROFILES_DIR/$PROFILE.yml"
 export PATH_TO_COOKIES="$PATH_TO_PROFILES_DIR/cookies.dat"
 export CLUSTER_NAME=$PROFILE

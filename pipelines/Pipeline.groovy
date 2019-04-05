@@ -3,7 +3,7 @@ def deployAirflow() {
     file(credentialsId: "vault-airflow", variable: 'vault')]) {
         withAWS(credentials: 'kops') {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
-                docker.image("${env.param_docker_repo}/k8s-airflow-ansible:${env.param_legion_airflow_version}").inside("-e HOME=/opt/legion/deploy -u root") {
+                docker.image("${env.param_docker_repo}/k8s-airflow-ansible:${env.param_legion_airflow_version}").inside("-e HOME=/opt/legion/ -u root") {
                     stage('Deploy Airflow') {
                         sh """
                         cd ${ansibleHome} && \
@@ -28,7 +28,7 @@ def undeployAirflow() {
     file(credentialsId: "vault-airflow", variable: 'vault')]) {
         withAWS(credentials: 'kops') {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
-                docker.image("${env.param_docker_repo}/k8s-airflow-ansible:${env.param_legion_airflow_version}").inside("-e HOME=/opt/legion/deploy -u root") {
+                docker.image("${env.param_docker_repo}/k8s-airflow-ansible:${env.param_legion_airflow_version}").inside("-e HOME=/opt/legion/ -u root") {
                     stage('Undeploy Airflow') {
                         sh """
                         cd ${ansibleHome} && \
@@ -53,12 +53,12 @@ def runRobotTests() {
     file(credentialsId: "vault-${env.param_profile}", variable: 'vault')]) {
         withAWS(credentials: 'kops') {
             wrap([$class: 'AnsiColorBuildWrapper', colorMapName: "xterm"]) {
-                docker.image("${env.param_docker_repo}/airflow-docker-agent:${env.param_legion_airflow_version}").inside("-e HOME=/opt/legion/deploy -u root") {
+                docker.image("${env.param_docker_repo}/airflow-pipeline-agent:${env.param_legion_airflow_version}").inside("-e HOME=/opt/legion -u root") {
                     stage('Run Robot tests') {
                         dir("${WORKSPACE}"){
                             def nose_report = 0
                             def robot_report = 0
-                            sh "./tests/robot/run_robot_tests.sh ${env.param_profile} ${env.param_legion_version}"
+                            sh "./tests/robot/run_robot_tests.sh ${env.param_profile} ${env.param_legion_airflow_version}"
 
                             robot_report = sh(script: 'find tests/robot/ -name "*.xml" | wc -l', returnStdout: true)
 

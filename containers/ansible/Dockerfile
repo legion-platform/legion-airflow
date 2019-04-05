@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-WORKDIR /opt/legion/deploy/
+WORKDIR /opt/legion/
 
 # install system utilities
 RUN apt-get update && apt-get install -y \
@@ -49,5 +49,4 @@ RUN curl -fsSLO https://kubernetes-helm.storage.googleapis.com/helm-${HELM_VERSI
     tar xzf /tmp/helm/helm-${HELM_VERSION}-linux-amd64.tar.gz -C /tmp/helm && \
     mv /tmp/helm/linux-amd64/helm /usr/local/bin/helm && rm -rf /tmp/helm
 
-# Deploy Legion
-COPY ansible /opt/legion/deploy/ansible
+COPY ansible /opt/legion/ansible

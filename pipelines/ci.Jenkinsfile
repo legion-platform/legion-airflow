@@ -17,7 +17,7 @@ pipeline {
         sharedLibPath = "deploy/Pipeline.groovy"
         legionSharedLibPath = "deploy/legionPipeline.groovy"
         legionAirflowVersion = null
-        ansibleHome =  "/opt/legion/deploy/ansible"
+        ansibleHome =  "/opt/legion/ansible"
         ansibleVerbose = '-v'
         helmLocalSrc = 'false'
         mergeBranch = "ci/${params.GitBranch}"
