@@ -14,7 +14,6 @@ def deployAirflow() {
                         legion_airflow_version=${env.param_legion_airflow_version} \
                         helm_repo=${env.param_helm_repo} \
                         docker_repo=${env.param_docker_repo} \
-                        helm_local_src=${helmLocalSrc} \
                         enclave=${env.param_enclave_name}"
                         """
                     }
@@ -39,8 +38,7 @@ def undeployAirflow() {
                         --extra-vars "param_env_name=${param_env_name} \
                         legion_airflow_version=${env.param_legion_airflow_version}  \
                         helm_repo=${env.param_helm_repo} \
-                        docker_repo=${env.param_docker_repo} \
-                        helm_local_src=${helmLocalSrc}"
+                        docker_repo=${env.param_docker_repo}"
                         """
                     }
                 }

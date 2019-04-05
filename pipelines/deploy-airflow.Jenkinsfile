@@ -6,9 +6,10 @@ pipeline {
         param_git_branch = "${params.GitBranch}"
         param_profile = "${params.Profile}"
         param_legion_airflow_version = "${params.LegionAirflowVersion}"
-        param_legion_version = "${params.LegionVersion}"
-        //Legion release tag to be used for common pipeline tasks and orchestration container
-        param_legion_release = "${params.LegionRelease}"
+        //Legion Infra repo url (for pipeline methods import)
+        param_legion_infra_repo = "${params.LegionInfraRepo}"
+        //Legion repo version tag (tag or branch name)
+        param_legion_infra_version = "${params.LegionInfraVersion}"
         //Legion eclave name where to deploy Airflow
         param_enclave_name = "${params.Enclave}"
         param_deploy_airflow = "${params.DeployAirflow}"
@@ -18,15 +19,13 @@ pipeline {
         param_helm_repo = "${params.HelmRepo}"
         param_debug_run = "${params.DebugRun}"
         //Job parameters
-
-        sharedLibPath = "deploy/Pipeline.groovy"
-        legionSharedLibPath = "deploy/legionPipeline.groovy"
+        sharedLibPath = "pipelines/Pipeline.groovy"
+        legionSharedLibPath = "pipelines/legionPipeline.groovy"
         cleanupContainerVersion = "latest"
-        ansibleHome =  "/opt/legion/deploy/ansible"
+        ansibleHome =  "/opt/legion/ansible"
         ansibleVerbose = '-v'
-        helmLocalSrc = 'false'
         //Alternative profiles path with legion cluster parameters
-        PROFILES_PATH = "${WORKSPACE}/legion/deploy/profiles"
+        PROFILES_PATH = "${WORKSPACE}/legion/profiles"
     }
 
     stages {
@@ -42,9 +41,9 @@ pipeline {
                     // Import legion-airflow components
                     legionAirflow = load "${env.sharedLibPath}"
                     
-                    // import Legion components
+                   // import Legion components
                     dir("${WORKSPACE}/legion") {
-                        checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version}"]]], poll: false 
+                        checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_infra_repo}"]], branches: [[name: "refs/tags/${env.param_legion_infra_version}"]]], poll: false
                         legion = load "${env.legionSharedLibPath}"
                     }
                     
@@ -90,25 +89,15 @@ pipeline {
     }
 
     post {
-        always {
-            script {
-                dir("${WORKSPACE}/legion") {
-                    // import Legion components
-                    checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version}"]]], poll: false
-                    legion = load "${env.legionSharedLibPath}"
-                    legion.notifyBuild(currentBuild.currentResult)
-                }
-            }
-        }
         cleanup {
             script {
                  dir("${WORKSPACE}/legion") {
                     // import Legion components
-                    checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_repo}"]], branches: [[name: "refs/tags/${env.param_legion_version}"]]], poll: false
+                    checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_infra_repo}"]], branches: [[name: "refs/tags/${env.param_legion_infra_version}"]]], poll: false 
                     legion = load "${env.legionSharedLibPath}"
                     // reset ansible home to defaults
                     ansibleHome = env.ansibleHome
-                    legion.cleanupClusterSg(param_legion_version ?: cleanupContainerVersion)
+                    legion.cleanupClusterSg(env.param_legion_infra_version ?: cleanupContainerVersion)
                 }
             }
             deleteDir()

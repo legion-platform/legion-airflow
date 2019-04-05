@@ -17,7 +17,6 @@ cluster_zones:
   - zone_name: us-east-2c
 private_network: '172.31'
 tmp_dir: /tmp
-helm_local_src: false
 enclaves:
   - company-a
 

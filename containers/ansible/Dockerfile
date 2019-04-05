@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     apt-get clean -y && apt-get autoclean -y
 
 # setup locale
-COPY k8s/ansible/default_locale /etc/default/locale
+COPY containers/ansible/default_locale /etc/default/locale
 RUN locale-gen en_US.UTF-8 && update-locale LANG=en_US.UTF-8 && \
     chmod 0755 /etc/default/locale
 
@@ -50,4 +50,4 @@ RUN curl -fsSLO https://kubernetes-helm.storage.googleapis.com/helm-${HELM_VERSI
     mv /tmp/helm/linux-amd64/helm /usr/local/bin/helm && rm -rf /tmp/helm
 
 # Deploy Legion
-COPY deploy/ansible /opt/legion/deploy/ansible
+COPY ansible /opt/legion/deploy/ansible

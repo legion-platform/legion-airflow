@@ -27,7 +27,7 @@ pipeline {
              //Legion Infra repo url (for pipeline methods import)
             param_legion_infra_repo = "${params.LegionInfraRepo}"
             //Legion repo version tag (tag or branch name)
-            param_legion_infra_version_tag = "${params.LegionInfraVersionTag}"
+            param_legion_infra_version = "${params.LegionInfraVersion}"
             //Legion repo url (for pipeline methods import)
             param_legion_repo = "${params.LegionRepo}"
             //Legion repo version tag (tag or branch name)
@@ -73,7 +73,7 @@ pipeline {
 
                     // import Legion components
                     dir("${WORKSPACE}/legion") {
-                        checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_infra_repo}"]], branches: [[name: "refs/tags/${env.param_legion_infra_version_tag}"]]], poll: false
+                        checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_infra_repo}"]], branches: [[name: "refs/tags/${env.param_legion_infra_version}"]]], poll: false
                         legion = load "${env.legionSharedLibPath}"
                     }
                     
@@ -175,7 +175,7 @@ pipeline {
         stage('Package and upload helm charts'){
             steps {
                 script {
-                    docker.image("legion/legion-pipeline-agent:${Globals.buildVersion}").inside("-v /var/run/docker.sock:/var/run/docker.sock -u root") {
+                    docker.image("legion/airflow-pipeline-agent:${Globals.buildVersion}").inside("-v /var/run/docker.sock:/var/run/docker.sock -u root") {
                         legion.uploadHelmCharts(env.pathToCharts)
                     }
                 }
@@ -232,7 +232,7 @@ pipeline {
         always {
             script {
                 dir ("${WORKSPACE}/legion") {
-                        checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_infra_repo}"]], branches: [[name: "refs/tags/${env.param_legion_infra_version_tag}"]]], poll: false
+                        checkout scm: [$class: 'GitSCM', userRemoteConfigs: [[url: "${env.param_legion_infra_repo}"]], branches: [[name: "refs/tags/${env.param_legion_infra_version}"]]], poll: false
                         legion = load "${env.legionSharedLibPath}"
                     }
                 legion.notifyBuild(currentBuild.currentResult)
