@@ -28,10 +28,6 @@ pipeline {
             param_legion_infra_repo = "${params.LegionInfraRepo}"
             //Legion repo version tag (tag or branch name)
             param_legion_infra_version = "${params.LegionInfraVersion}"
-            //Legion repo url (for pipeline methods import)
-            param_legion_repo = "${params.LegionRepo}"
-            //Legion repo version tag (tag or branch name)
-            param_legion_version_tag = "${params.LegionVersionTag}"
             //Push release git tag
             param_push_git_tag = "${params.PushGitTag}"
             //Rewrite git tag i exists
