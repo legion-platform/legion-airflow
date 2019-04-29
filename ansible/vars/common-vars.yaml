@@ -1,0 +1,47 @@
+---
+# Cluster specific data
+vendor: legion
+route53_zone: epm.kharlamov.biz
+aws_region: us-east-2
+env_name: "{{ param_env_name }}"
+base_domain: "{{ env_name }}.{{ route53_zone }}"
+cluster_name: "{{ env_name }}.{{ route53_zone }}"
+profile: "{{ env_name }}.{{ route53_zone }}"
+state_store: s3://legion-cluster
+namespace: "{{ enclave }}"
+secrets_bucket: "legion-cluster"
+vpc_id: vpc-5729c13e
+cluster_zones:
+  - zone_name: us-east-2a
+  - zone_name: us-east-2b
+  - zone_name: us-east-2c
+private_network: '172.31'
+tmp_dir: /tmp
+enclaves:
+  - company-a
+
+# RDS database
+airflow_rds_engine: "postgres"
+airflow_rds_shape: "db.t2.medium"
+airflow_rds_size: "50"
+airflow_rds_engine_version: "10.4"
+airflow_db_schema: "{{ enclave }}"
+airflow_db_enclave_user: "{{ enclave }}"
+
+# S3 storage 
+legion_data_bucket_prefix: legion-data
+legion_data_s3_bucket: "{{ legion_data_bucket_prefix }}-{{ env_name }}-{{ enclave }}"
+airflow_s3_logs_path: 'airflow-logs/'
+airflow_s3_logs_url: "s3://{{ legion_data_s3_bucket }}/{{ airflow_s3_logs_path }}"
+
+# EFS PVC for Dags
+storageclass: efs
+airflow_dags_dir: '/airflow-dags'
+airflow_dags_pvc: legion-airflow-dags
+airflow_pvc: 200m
+
+# K8S POD parameters
+airflow_worker_cpu_requests: "1500m"
+airflow_worker_cpu_limits: "2000m"
+airflow_worker_mem_requests: "1000Mi"
+airflow_worker_mem_limits: "2500Mi"

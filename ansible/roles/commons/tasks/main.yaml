@@ -1,0 +1,34 @@
+---
+# Install kops
+- name: Download Kops binaries
+  get_url:
+    url: "{{ kops_download_path }}"
+    dest: /usr/local/bin/kops
+    owner: root
+    group: root
+    mode: 0755
+    force: yes
+    sha256sum: "{{ kops_sha256sum }}"
+  become: true
+
+# Install kubectl
+- name: Download Kubectl binaries
+  get_url:
+    url: "{{ kubectl_download_path }}/{{ item }}"
+    dest: /usr/local/bin
+    owner: root
+    group: root
+    mode: 0755
+    force: yes
+  with_items:
+    - kubectl
+  become: true
+
+- name: Download jq
+  get_url:
+    url: "{{ jq_download_url }}"
+    dest: "/usr/bin/jq"
+    owner: root
+    group: root
+    mode: a+rx
+  become: yes

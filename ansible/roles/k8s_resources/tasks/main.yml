@@ -1,0 +1,20 @@
+---
+
+# Make sure kubectl is configured with proper cluster
+- name: Configure kubectl using kops
+  shell: "kops export kubecfg --name {{ cluster_name }} --state {{ state_store }}"
+
+- name: Get current status of EFS Provisioner
+  shell: "helm --kube-context {{ cluster_name }} ls |grep efs-provisioner"
+  ignore_errors: yes
+  register: efs_provisioner_status
+
+# Deploy EFS Provisioner helm charts
+- name: Deploy EFS Provisioner
+  shell: "helm --kube-context {{ cluster_name }} install stable/efs-provisioner --name efs-provisioner --namespace kube-system --set efsProvisioner.efsFileSystemId={{ airflow_efs.efs.file_system_id }} --set efsProvisioner.awsRegion={{ aws_region }} --set efsProvisioner.provisionerName=efs-provisioner --set image.tag=v2.1.0-k8s1.11 --wait --timeout 600"
+  when: efs_provisioner_status.stdout.find("efs-provisioner") == -1
+
+- name: Wait for provisioner startup
+  pause:
+    seconds: 10
+  when: efs_provisioner_status.stdout.find("efs-provisioner") == -1

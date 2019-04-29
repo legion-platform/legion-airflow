@@ -1,0 +1,61 @@
+---
+
+- name: Get airflow chart status
+  shell: helm --kube-context {{ cluster_name }} ls --all airflow-{{ enclave }}
+  register: airflow_deployment_status
+
+- set_fact:
+    airflow_deployed: "{{ airflow_deployment_status.stdout_lines|length > 1 }}"
+
+- name: Remove airflow chart
+  shell: helm --kube-context {{ cluster_name }} delete --purge airflow-{{ enclave }}
+  when: airflow_deployed
+
+- name: WORKAROUND delete pods in phase terminating
+  shell: kubectl --context {{ cluster_name }} delete --grace-period=0 --force po $(kubectl --context {{ cluster_name }} get po -o wide | grep Terminating | awk '{ print $1 }') || true
+  when: airflow_deployed
+
+- name: Wait for PVC deletion
+  shell: kubectl --context {{ cluster_name }} -n {{ enclave }} get persistentvolumeclaim
+  register: cmd_result
+  until: cmd_result.stdout.find("{{ airflow_dags_pvc }}") == -1
+  retries: 10
+  delay: 10
+
+- name: Generate fernet key
+  command: python -c 'from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)'
+  register: fernet_key_output
+
+- name: Generate flask key
+  command: python -c 'import os, binascii; print(binascii.b2a_hex(os.urandom(60))[:32])'
+  register: flask_key_output
+
+- name: Get Airflow Postgres RDS endpoint
+  rds:
+    command: facts
+    region: "{{ aws_region }}"
+    instance_name: "{{ env_name }}-airflow-rds"
+  register: airflow_rds_instance_facts
+
+- name: Create airflow configuration (values) file
+  template:
+    src: airflow-values.yaml.j2
+    dest: "{{ tmp_dir }}/airflow-values.{{ cluster_name }}.yaml"
+    mode: 0644
+  vars:
+    secret_fernet_key: "{{ fernet_key_output.stdout }}"
+    secret_flask: "{{ flask_key_output.stdout }}"
+
+# Install charts from remote repo
+- name: Pre run with dumping
+  shell: helm --kube-context {{ cluster_name }} install legion-helm/airflow --name airflow-{{ enclave }} --version={{ legion_airflow_version }} --namespace {{ enclave }} --debug --dry-run -f  {{ tmp_dir }}/airflow-values.{{ cluster_name }}.yaml
+  register: helm_airflow_install_output
+
+- name: Save pre run result
+  copy:
+    content: "{{ helm_airflow_install_output.stdout }}"
+    dest: "{{ tmp_dir }}/helm.airflow.{{ cluster_name }}.debug"
+
+- name: Install airflow chart
+  shell: helm --kube-context {{ cluster_name }} install legion-helm/airflow --name airflow-{{ enclave }} --version={{ legion_airflow_version }} --namespace {{ enclave }} --wait --timeout 600 -f  {{ tmp_dir }}/airflow-values.{{ cluster_name }}.yaml
+

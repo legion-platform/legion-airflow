@@ -1,0 +1,12 @@
+---
+
+- name: Remove efs-provisioner chart
+  shell: helm --kube-context {{ cluster_name }} delete --purge efs-provisioner 
+  ignore_errors: true
+
+- name: Wait for EFS provisioner deletion
+  shell: kubectl --context {{ cluster_name }} -n kube-system get pods
+  register: cmd_result
+  until: cmd_result.stdout.find('efs-provisioner') == -1
+  retries: 10
+  delay: 10
