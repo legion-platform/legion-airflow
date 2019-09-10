@@ -1,0 +1,9 @@
+logs/*
+.idea
+.idea/*
+.python-version
+env-setup.sh
+logs
+scratch
+**/*.egg-info/*
+**/__pycache__/*
