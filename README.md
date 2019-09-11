@@ -8,6 +8,21 @@ An apache airflow plugin for the Legion Platform.
 1. [Install, Start and InitDB for Airflow](https://airflow.apache.org/installation.html)  
 1. Install the plugin defined in ./plugin/ to Airflow (or softlink/copy to $AIRFLOW_HOME/plugins)
 1. Copy or import ./dags/legion_dag.py
+1. Create the Airflow connections:
+* `legion_model`
+    * `id`: legion_model
+    * `type`: http
+    * `host`: edge.cluster-name.ailifecycle.org
+    * `schema`: https
+* `legion_edi`
+    * `id`: legion_edi
+    * `type`: http
+    * `host`: edi.cluster-name.ailifecycle.org
+    * `schema`: https
+    * `login`: ****
+    * `password`: ****
+    * `extra`: {"auth_url": "****", "client_id": "****", "client_secret": "****", "scope": "openid profile email offline_access groups"}
+
 1. Invoke
 
 ### DEV notes

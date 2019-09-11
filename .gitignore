@@ -7,3 +7,4 @@ logs
 scratch
 **/*.egg-info/*
 **/__pycache__/*
+.secrets
